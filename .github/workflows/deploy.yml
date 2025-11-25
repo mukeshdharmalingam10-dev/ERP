@@ -17,7 +17,7 @@ jobs:
       uses: SamKirkland/FTP-Deploy-Action@v4
       with:
         server: ${{ secrets.ftp.whyceeyes.com }}
-        username: ${{ secrets.custom_erp }}
+        username: ${{ secrets.custom_erp@whyceeyes.com }}
         password: ${{ secrets.Kathir_erp@3124 }}
         local-dir: ./
         server-dir: /public_html/custom_erp/
