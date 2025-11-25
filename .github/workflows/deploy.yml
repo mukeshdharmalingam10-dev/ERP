@@ -12,12 +12,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-     
+
       - name: Setup FTP deploy action
-        uses: SamKirkland/FTP-Deploy-Action@v3  # Use v3 or the latest stable version
+        uses: peaceiris/actions-ftp-deploy@v1.2  # Use the latest version
         with:
-          ftp-server: ${{ secrets.FTP_SERVER }}  # Your FTP server address
-          ftp-username: ${{ secrets.FTP_USERNAME }}  # Your FTP username
-          ftp-password: ${{ secrets.FTP_PASSWORD }}  # Your FTP password
-          local-dir: ./  # Path to your code (use `./` to deploy the whole repo)
-          remote-dir: /public_html/custom_erp/  # Your remote directory on the server
+          server: ${{ secrets.FTP_SERVER }}  # FTP server address (e.g., ftp://yourserver.com)
+          username: ${{ secrets.FTP_USERNAME }}  # FTP username
+          password: ${{ secrets.FTP_PASSWORD }}  # FTP password
+          local-dir: ./  # Local directory to upload (use `./` for the whole repo)
+          remote-dir: /public_html/custom_erp/  # Remote directory on the server
