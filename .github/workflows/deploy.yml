@@ -35,7 +35,7 @@ jobs:
 
           # Local and remote directories
           local_dir = './'  # Path to your code (use `./` for the whole repo)
-          remote_dir = '/custom_erp/'  # Direct remote directory
+          remote_dir = '/custom_erp/'  # Direct remote directory path
 
           # Function to create remote directories if they don't exist
           def create_directory_if_not_exists(remote_path):
@@ -55,11 +55,12 @@ jobs:
                       else:
                           raise
 
-          # Function to upload files, preserving directory structure
+          # Function to upload files, preserving folder structure
           def upload_file(local_file, remote_file):
               # Create the necessary directories on the remote server if they don't exist
               remote_folder = os.path.dirname(remote_file)
-              create_directory_if_not_exists(remote_folder)
+              if remote_folder != remote_dir:
+                  create_directory_if_not_exists(remote_folder)
 
               # Upload the file to the FTP server
               with open(local_file, 'rb') as f:
