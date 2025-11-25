@@ -8,13 +8,13 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      
+     
       - name: Setup FTP deploy action
-        uses: SamKirkland/FTP-Deploy-Action@v4
+        uses: SamKirkland/FTP-Deploy-Action@v3  # Use v3 or the latest stable version
         with:
           ftp-server: ${{ secrets.FTP_SERVER }}  # Your FTP server address
           ftp-username: ${{ secrets.FTP_USERNAME }}  # Your FTP username
