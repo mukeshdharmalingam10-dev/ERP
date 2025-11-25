@@ -38,22 +38,22 @@ jobs:
           remote_dir = '/custom_erp/'  # Direct remote directory path
 
           # Function to create remote directories if they don't exist
-          def create_directory_if_not_exists(remote_path):
-              dirs = remote_path.strip('/').split('/')
-              path = '/'
-              for dir in dirs:
-                  path = os.path.join(path, dir)
-                  try:
-                      # Try changing to the directory
-                      ftp.cwd(path)
-                  except error_perm as e:
-                      # If directory doesn't exist, create it
-                      if '550' in str(e):
-                          print(f"Directory {path} does not exist. Creating it.")
-                          ftp.mkd(path)
-                          ftp.cwd(path)
-                      else:
-                          raise
+          # def create_directory_if_not_exists(remote_path):
+          #     dirs = remote_path.strip('/').split('/')
+          #     path = '/'
+          #     for dir in dirs:
+          #         path = os.path.join(path, dir)
+          #         try:
+          #             # Try changing to the directory
+          #             ftp.cwd(path)
+          #         except error_perm as e:
+          #             # If directory doesn't exist, create it
+          #             if '550' in str(e):
+          #                 print(f"Directory {path} does not exist. Creating it.")
+          #                 ftp.mkd(path)
+          #                 ftp.cwd(path)
+          #             else:
+          #                 raise
 
           # Function to upload files, preserving folder structure
           def upload_file(local_file, remote_file):
