@@ -19,7 +19,7 @@ jobs:
 
         # Local directory containing files to upload
         LOCAL_DIR="./public"
-        REMOTE_DIR="/public_html/custom_erp/"
+        REMOTE_DIR="/home2/whyceffy/public_html/custom_erp/"
 
         # Debugging output
         echo "FTP Server: ${{ secrets.FTP_SERVER }}"
@@ -31,5 +31,6 @@ jobs:
             echo "Uploading: $FILE → $REMOTE_PATH"
             curl -v -T "$FILE" "ftps://${{ secrets.FTP_SERVER }}$REMOTE_PATH" \
                 --user "${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}" \
-                --ssl-reqd
+                --ssl-reqd \
+                --ftp-pasv
         done
