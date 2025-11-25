@@ -69,13 +69,14 @@ jobs:
           for root, dirs, files in os.walk(local_dir):
               for file in files:
                   local_file = os.path.join(root, file)
+
                   # Get the relative path of the file to create the same structure on the server
                   relative_path = os.path.relpath(local_file, local_dir)
 
-                  # Remove the "custom_erp" from the relative path (if it exists) to prevent duplication
-                  relative_path = relative_path.replace('custom_erp/', '')
+                  # Remove the top-level "custom_erp" from the relative path
+                  relative_path = relative_path.replace('custom_erp/', '', 1)
 
-                  # Now construct the remote file path
+                  # Construct the remote file path
                   remote_file = os.path.join(remote_dir, relative_path)
                   print(f"Uploading {local_file} to {remote_file}")
                   upload_file(local_file, remote_file)
