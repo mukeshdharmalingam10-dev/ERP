@@ -1,4 +1,4 @@
-name: Custom FTP Deploy
+name: FTP Deploy (cURL)
 
 on:
   push:
@@ -10,17 +10,31 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-
-    # Checkout code
-    - name: Checkout
+    - name: Checkout Code
       uses: actions/checkout@v3
 
-    # Upload files using curl
-    - name: FTP Upload via curl
+    - name: Upload Files via Curl
       run: |
-        for f in $(find public -type f); do
-          echo "Uploading $f"
-          curl --ftp-create-dirs -T "$f" \
-          ftp://${{ secrets.FTP_SERVER }}/public_html/custom_erp/${f#public/} \
-          --user "${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}"
+        echo "Starting Deployment..."
+
+        # Local directory containing files to upload
+        LOCAL_DIR="public_html"
+
+        # Remote directory path on server
+        REMOTE_DIR="/public_html/custom_erp/"
+
+        # Loop through all files under public_html
+        for FILE in $(find "$LOCAL_DIR" -type f); do
+
+          # Build the remote destination path
+          REMOTE_PATH="$REMOTE_DIR${FILE#$LOCAL_DIR/}"
+
+          echo "Uploading: $FILE → $REMOTE_PATH"
+
+          # Upload via FTP
+          curl -T "$FILE" \
+            "ftp://${{ secrets.FTP_SERVER }}$REMOTE_PATH" \
+            --user "${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}"
         done
+
+        echo "Deployment completed!"
