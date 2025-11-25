@@ -74,7 +74,8 @@ jobs:
                   relative_path = os.path.relpath(local_file, local_dir)
 
                   # Remove the top-level "custom_erp" from the relative path
-                  relative_path = relative_path.replace('custom_erp/', '', 1)
+                  if relative_path.startswith('custom_erp/'):
+                      relative_path = relative_path[len('custom_erp/'):]
 
                   # Construct the remote file path
                   remote_file = os.path.join(remote_dir, relative_path)
