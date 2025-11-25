@@ -1,4 +1,4 @@
-name: FTP Deploy (cURL)
+name: FTP Deploy
 
 on:
   push:
@@ -10,45 +10,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Code
+    - name: Check out code
       uses: actions/checkout@v3
 
-    - name: Upload Files via Curl
-      run: |
-        echo "Starting Deployment..."
-
-        # Local directory to upload (Laravel public folder)
-        LOCAL_DIR="./public"
-
-        # Remote directory on server
-        REMOTE_DIR="/public_html/custom_erp/"
-
-        # Loop through all files and upload
-        find "$LOCAL_DIR" -type f | while read FILE; do
-
-          # Build remote path, preserving folder structure
-          REMOTE_PATH="$REMOTE_DIR${FILE#$LOCAL_DIR/}"
-
-          # Only upload if file has changed (compare size)
-          SIZE_LOCAL=$(stat -c%s "$FILE" 2>/dev/null || stat -f%z "$FILE")
-          SIZE_REMOTE=$(curl -s --ftp-ssl --insecure --user "${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}" \
-                        "ftp://${{ secrets.FTP_SERVER }}$REMOTE_PATH" -Q "SIZE $REMOTE_PATH" 2>/dev/null | tail -n1)
-          
-          if [ "$SIZE_LOCAL" != "$SIZE_REMOTE" ]; then
-            echo "Uploading: $FILE → $REMOTE_PATH"
-
-            # Ensure remote directories exist
-            DIR_REMOTE=$(dirname "$REMOTE_PATH")
-            curl -s --ftp-ssl --insecure --user "${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}" \
-              "ftp://${{ secrets.FTP_SERVER }}/" -Q "MKD $DIR_REMOTE" 2>/dev/null || true
-
-            # Upload file
-            curl -T "$FILE" "ftps://${{ secrets.FTP_SERVER }}$REMOTE_PATH" \
-              --user "${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}" \
-              --ftp-ssl --insecure
-          else
-            echo "Skipping unchanged file: $FILE"
-          fi
-        done
-
-        echo "Deployment completed!"
+    - name: FTP Deploy
+      uses: SamKirkland/FTP-Deploy-Action@v4
+      with:
+        server: ${{ secrets.FTP_SERVER }}
+        username: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        local-dir: ./
+        server-dir: /public_html/custom_erp/
