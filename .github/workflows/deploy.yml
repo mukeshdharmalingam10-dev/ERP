@@ -35,23 +35,27 @@ jobs:
 
           # Local and remote directories
           local_dir = './'  # Path to your code (use `./` for the whole repo)
-          remote_dir = '/public_html/custom_erp/'  # Remote directory
+          remote_dir = '/home2/whyceffy/public_html/custom_erp/'  # Correct remote directory path
 
           # Function to create remote directory if it doesn't exist
           def create_directory_if_not_exists(remote_path):
-              try:
-                  # Try changing to the remote directory
-                  ftp.cwd(remote_path)
-              except error_perm as e:
-                  # If directory doesn't exist, create it
-                  if '550' in str(e):
-                      print(f"Directory {remote_path} does not exist. Creating it.")
-                      ftp.mkd(remote_path)
-                      ftp.cwd(remote_path)
-                  else:
-                      raise
+              dirs = remote_path.strip('/').split('/')
+              path = '/'
+              for dir in dirs:
+                  path = os.path.join(path, dir)
+                  try:
+                      # Try changing to the directory
+                      ftp.cwd(path)
+                  except error_perm as e:
+                      # If directory doesn't exist, create it
+                      if '550' in str(e):
+                          print(f"Directory {path} does not exist. Creating it.")
+                          ftp.mkd(path)
+                          ftp.cwd(path)
+                      else:
+                          raise
 
-          # Create remote directory if it doesn't exist
+          # Create remote directories if they don't exist
           create_directory_if_not_exists(remote_dir)
 
           # Function to upload files
