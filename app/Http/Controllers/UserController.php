@@ -80,7 +80,8 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users',
             'mobile' => 'nullable|string|max:20',
-            'role_id' => 'required|exists:roles,id',
+            'roles' => 'required|array|min:1',
+            'roles.*' => 'exists:roles,id',
             'branches' => 'nullable|array',
             'branches.*' => 'exists:branches,id',
             'password' => [
@@ -99,8 +100,12 @@ class UserController extends Controller
             'password.confirmed' => 'Password confirmation does not match.',
         ]);
         
-        // Get selected role
-        $role = \App\Models\Role::findOrFail($request->role_id);
+        // Get selected roles
+        $roles = \App\Models\Role::whereIn('id', $request->roles)->get();
+        
+        // Determine primary role (prioritize Super Admin if selected, otherwise first one)
+        $primaryRole = $roles->firstWhere('slug', 'super-admin') ?? $roles->first();
+        $role = $primaryRole; // For legacy logic below
         
         // Validate branch assignment (not required for Super Admin)
         if ($role->slug !== 'super-admin' && (!$request->branches || !is_array($request->branches) || count($request->branches) == 0)) {
@@ -116,7 +121,7 @@ class UserController extends Controller
                 'email' => $request->email,
                 'password' => Hash::make($password),
                 'mobile' => $request->mobile ?? null,
-                'role_id' => $role->id,
+                'role_id' => $primaryRole->id,
                 'status' => 'active',
                 'created_by' => $currentUser->id,
                 'organization_id' => null,
@@ -125,6 +130,9 @@ class UserController extends Controller
             ];
 
             $user = User::create($data);
+            
+            // Sync roles (many-to-many)
+            $user->roles()->sync($request->roles);
             
             // Sync branches (many-to-many) - only if not Super Admin
             if ($role->slug !== 'super-admin' && $request->branches) {
@@ -201,13 +209,16 @@ class UserController extends Controller
             abort(403, 'Only Super Admin can update users.');
         }
         
-        $role = \App\Models\Role::findOrFail($request->role_id);
+        $roles = \App\Models\Role::whereIn('id', $request->roles)->get();
+        $primaryRole = $roles->firstWhere('slug', 'super-admin') ?? $roles->first();
+        $role = $primaryRole; // For legacy logic below
         
         $rules = [
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $id,
             'mobile' => 'nullable|string|max:20',
-            'role_id' => 'required|exists:roles,id',
+            'roles' => 'required|array|min:1',
+            'roles.*' => 'exists:roles,id',
             'status' => 'required|in:active,inactive,locked',
         ];
         
@@ -230,7 +241,8 @@ class UserController extends Controller
         
         $request->validate($rules);
         
-        $data = $request->only(['name', 'email', 'mobile', 'status', 'role_id']);
+        $data = $request->only(['name', 'email', 'mobile', 'status']);
+        $data['role_id'] = $primaryRole->id;
         
         // Update password only if provided and not empty
         $password = $request->input('password');
@@ -239,6 +251,7 @@ class UserController extends Controller
         }
 
         $user->update($data);
+        $user->roles()->sync($request->roles);
         
         // Sync branches (many-to-many) - only if not Super Admin
         if ($role->slug !== 'super-admin' && $request->branches) {

@@ -335,9 +335,9 @@
                         <span>Roles</span>
                     </a>
                     
-                    <a href="{{ route('permissions.index') }}" class="menu-item" title="Permissions">
+                    <a href="{{ route('role-permissions.select') }}" class="menu-item" title="Role Permissions">
                         <i class="fas fa-key"></i>
-                        <span>Permissions</span>
+                        <span>Role Permissions</span>
                     </a>
                 @endif
                 
