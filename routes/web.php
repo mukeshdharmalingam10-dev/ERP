@@ -63,6 +63,7 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('units', App\Http\Controllers\UnitController::class);
     Route::resource('customers', App\Http\Controllers\CustomerController::class);
     Route::resource('products', App\Http\Controllers\ProductController::class);
+    Route::resource('raw-material-categories', App\Http\Controllers\RawMaterialCategoryController::class);
 
     // Quotation Routes
     Route::resource('quotations', App\Http\Controllers\QuotationController::class);
@@ -78,4 +79,8 @@ Route::middleware(['auth'])->group(function () {
 
     // Settings Routes (Super Admin only)
     Route::resource('company-information', App\Http\Controllers\CompanyInformationController::class)->only(['index', 'create', 'store', 'show', 'edit', 'update', 'destroy']);
+
+    // Tender Routes
+    Route::resource('tenders', App\Http\Controllers\TenderController::class);
+    Route::get('tenders/customer/{id}', [App\Http\Controllers\TenderController::class, 'getCustomerDetails'])->name('tenders.customer');
 });

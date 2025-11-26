@@ -322,6 +322,12 @@
                     <span>Products</span>
                 </a>
                 @endif
+                @if(auth()->user()->hasPermission('raw-material-categories', 'view') || auth()->user()->isSuperAdmin())
+                <a href="{{ route('raw-material-categories.index') }}" class="menu-item" title="Raw Material Categories">
+                    <i class="fas fa-layer-group"></i>
+                    <span>Raw Material Categories</span>
+                </a>
+                @endif
 
                 {{-- Settings Menu (Super Admin only) --}}
                 @if(auth()->user()->isSuperAdmin())
