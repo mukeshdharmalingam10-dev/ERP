@@ -40,6 +40,8 @@
             transition: all 0.3s ease;
             z-index: 1000;
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
         .sidebar.collapsed {
             width: 70px;
@@ -107,6 +109,23 @@
         }
         .sidebar-menu {
             padding: 8px 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+            flex: 1;
+            max-height: calc(100vh - 60px);
+        }
+        .sidebar-menu::-webkit-scrollbar {
+            width: 6px;
+        }
+        .sidebar-menu::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.05);
+        }
+        .sidebar-menu::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.2);
+            border-radius: 3px;
+        }
+        .sidebar-menu::-webkit-scrollbar-thumb:hover {
+            background: rgba(255,255,255,0.3);
         }
         .menu-item {
             padding: 14px 20px;
@@ -335,6 +354,18 @@
                 <a href="{{ route('raw-material-categories.index') }}" class="menu-item" title="Raw Material Categories">
                     <i class="fas fa-layer-group"></i>
                     <span>Raw Material Categories</span>
+                </a>
+                @endif
+                @if(auth()->user()->hasPermission('departments', 'view') || auth()->user()->isSuperAdmin())
+                <a href="{{ route('departments.index') }}" class="menu-item" title="Departments">
+                    <i class="fas fa-building"></i>
+                    <span>Departments</span>
+                </a>
+                @endif
+                @if(auth()->user()->hasPermission('designations', 'view') || auth()->user()->isSuperAdmin())
+                <a href="{{ route('designations.index') }}" class="menu-item" title="Designations">
+                    <i class="fas fa-user-tie"></i>
+                    <span>Designations</span>
                 </a>
                 @endif
 

@@ -64,6 +64,8 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('customers', App\Http\Controllers\CustomerController::class);
     Route::resource('products', App\Http\Controllers\ProductController::class);
     Route::resource('raw-material-categories', App\Http\Controllers\RawMaterialCategoryController::class);
+    Route::resource('departments', App\Http\Controllers\DepartmentController::class);
+    Route::resource('designations', App\Http\Controllers\DesignationController::class);
 
     // Quotation Routes
     Route::resource('quotations', App\Http\Controllers\QuotationController::class);
