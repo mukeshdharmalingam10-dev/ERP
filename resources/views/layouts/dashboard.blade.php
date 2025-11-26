@@ -302,6 +302,15 @@
                     <span>Proforma Invoices</span>
                 </a>
 
+                {{-- Tender Sales Module --}}
+                @if(auth()->user()->isSuperAdmin() || auth()->user()->hasPermission('tenders', 'view'))
+                <div class="menu-item-header" style="padding: 10px 20px; font-size: 12px; color: #888; text-transform: uppercase; margin-top: 10px;">Tender Sales</div>
+                <a href="{{ route('tenders.index') }}" class="menu-item" title="Tenders">
+                    <i class="fas fa-gavel"></i>
+                    <span>Tenders</span>
+                </a>
+                @endif
+
                 <div class="menu-item-header" style="padding: 10px 20px; font-size: 12px; color: #888; text-transform: uppercase;">Masters</div>
 
                 @if(auth()->user()->hasPermission('units', 'view'))

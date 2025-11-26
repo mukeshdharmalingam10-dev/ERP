@@ -20,6 +20,13 @@ class TenderController extends Controller
      */
     public function index()
     {
+        $user = auth()->user();
+        
+        // Super Admin has access by default, but check permission for other users
+        if (!$user->isSuperAdmin() && !$user->hasPermission('tenders', 'view')) {
+            abort(403, 'You do not have permission to view tenders.');
+        }
+
         $query = Tender::with(['company', 'attendedBy']);
         $query = $this->applyBranchFilter($query, Tender::class);
         $tenders = $query->latest()->paginate(15);
@@ -31,6 +38,12 @@ class TenderController extends Controller
      */
     public function create()
     {
+        $user = auth()->user();
+        
+        // Super Admin has access by default, but check permission for other users
+        if (!$user->isSuperAdmin() && !$user->hasPermission('tenders', 'create')) {
+            abort(403, 'You do not have permission to create tenders.');
+        }
         // Filter customers by active branch
         $customerQuery = Customer::query();
         $customerQuery = $this->applyBranchFilter($customerQuery, Customer::class);
@@ -55,6 +68,13 @@ class TenderController extends Controller
      */
     public function store(Request $request)
     {
+        $user = auth()->user();
+        
+        // Super Admin has access by default, but check permission for other users
+        if (!$user->isSuperAdmin() && !$user->hasPermission('tenders', 'create')) {
+            abort(403, 'You do not have permission to create tenders.');
+        }
+
         $request->validate([
             'tender_no' => 'required|unique:tenders,tender_no',
             'customer_tender_no' => 'nullable|string|max:255',
@@ -211,6 +231,13 @@ class TenderController extends Controller
      */
     public function show($id)
     {
+        $user = auth()->user();
+        
+        // Super Admin has access by default, but check permission for other users
+        if (!$user->isSuperAdmin() && !$user->hasPermission('tenders', 'view')) {
+            abort(403, 'You do not have permission to view tenders.');
+        }
+
         $query = Tender::with(['company', 'attendedBy', 'items.unit', 'items.technicalSpecifications', 'financialTabulations', 'remarks']);
         $query = $this->applyBranchFilter($query, Tender::class);
         $tender = $query->findOrFail($id);
@@ -223,6 +250,12 @@ class TenderController extends Controller
      */
     public function edit($id)
     {
+        $user = auth()->user();
+        
+        // Super Admin has access by default, but check permission for other users
+        if (!$user->isSuperAdmin() && !$user->hasPermission('tenders', 'edit')) {
+            abort(403, 'You do not have permission to edit tenders.');
+        }
         $query = Tender::with(['items.unit', 'items.technicalSpecifications', 'financialTabulations', 'remarks']);
         $query = $this->applyBranchFilter($query, Tender::class);
         $tender = $query->findOrFail($id);
@@ -246,6 +279,13 @@ class TenderController extends Controller
      */
     public function update(Request $request, $id)
     {
+        $user = auth()->user();
+        
+        // Super Admin has access by default, but check permission for other users
+        if (!$user->isSuperAdmin() && !$user->hasPermission('tenders', 'edit')) {
+            abort(403, 'You do not have permission to edit tenders.');
+        }
+
         $query = Tender::query();
         $query = $this->applyBranchFilter($query, Tender::class);
         $tender = $query->findOrFail($id);
@@ -416,6 +456,13 @@ class TenderController extends Controller
      */
     public function destroy($id)
     {
+        $user = auth()->user();
+        
+        // Super Admin has access by default, but check permission for other users
+        if (!$user->isSuperAdmin() && !$user->hasPermission('tenders', 'delete')) {
+            abort(403, 'You do not have permission to delete tenders.');
+        }
+
         $query = Tender::query();
         $query = $this->applyBranchFilter($query, Tender::class);
         $tender = $query->findOrFail($id);
