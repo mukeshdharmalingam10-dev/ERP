@@ -4,11 +4,16 @@
 
 @section('content')
 <div style="background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+    @php
+        $user = auth()->user();
+    @endphp
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
         <h2 style="color: #333; font-size: 24px; margin: 0;">Departments</h2>
-        <a href="{{ route('departments.create') }}" style="padding: 12px 24px; background: #667eea; color: white; text-decoration: none; border-radius: 5px; font-weight: 500; display: inline-flex; align-items: center; gap: 8px;">
-            <i class="fas fa-plus"></i> Add Department
-        </a>
+        @if($user->hasPermission('departments', 'create'))
+            <a href="{{ route('departments.create') }}" style="padding: 12px 24px; background: #667eea; color: white; text-decoration: none; border-radius: 5px; font-weight: 500; display: inline-flex; align-items: center; gap: 8px;">
+                <i class="fas fa-plus"></i> Add Department
+            </a>
+        @endif
     </div>
 
     @if(session('success'))
@@ -42,16 +47,21 @@
                             <td style="padding: 12px; color: #666;">{{ $department->description ?? 'N/A' }}</td>
                             <td style="padding: 12px; text-align: center;">
                                 <div style="display: flex; gap: 8px; justify-content: center;">
-                                    <a href="{{ route('departments.edit', $department->id) }}" style="padding: 6px 12px; background: #ffc107; color: #333; text-decoration: none; border-radius: 4px; font-size: 12px;">
-                                        <i class="fas fa-edit"></i> Edit
-                                    </a>
-                                    <form action="{{ route('departments.destroy', $department->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this department?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" style="padding: 6px 12px; background: #dc3545; color: white; border: none; border-radius: 4px; font-size: 12px; cursor: pointer;">
-                                            <i class="fas fa-trash"></i> Delete
-                                        </button>
-                                    </form>
+                                    @if($user->hasPermission('departments', 'edit'))
+                                        <a href="{{ route('departments.edit', $department->id) }}" style="padding: 6px 12px; background: #ffc107; color: #333; text-decoration: none; border-radius: 4px; font-size: 12px;">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </a>
+                                    @endif
+
+                                    @if($user->hasPermission('departments', 'delete'))
+                                        <form action="{{ route('departments.destroy', $department->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this department?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" style="padding: 6px 12px; background: #dc3545; color: white; border: none; border-radius: 4px; font-size: 12px; cursor: pointer;">
+                                                <i class="fas fa-trash"></i> Delete
+                                            </button>
+                                        </form>
+                                    @endif
                                 </div>
                             </td>
                         </tr>
@@ -66,9 +76,11 @@
     @else
         <div style="text-align: center; padding: 40px; color: #666;">
             <p style="font-size: 18px; margin-bottom: 20px;">No departments found.</p>
-            <a href="{{ route('departments.create') }}" style="padding: 12px 24px; background: #667eea; color: white; text-decoration: none; border-radius: 5px; font-weight: 500;">
-                Create First Department
-            </a>
+            @if($user->hasPermission('departments', 'create'))
+                <a href="{{ route('departments.create') }}" style="padding: 12px 24px; background: #667eea; color: white; text-decoration: none; border-radius: 5px; font-weight: 500;">
+                    Create First Department
+                </a>
+            @endif
         </div>
     @endif
 </div>

@@ -45,17 +45,18 @@
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
             <div>
-                <label for="role_id" style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Role <span style="color: red;">*</span></label>
-                <select name="role_id" id="role_id" required
-                    style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;"
+                <label for="roles" style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Roles <span style="color: red;">*</span></label>
+                <select name="roles[]" id="roles" multiple required
+                    style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; min-height: 100px;"
                     onchange="toggleBranchSelection()">
                     @foreach($roles as $role)
-                        <option value="{{ $role->id }}" {{ old('role_id', $user->role_id) == $role->id ? 'selected' : '' }}>
+                        <option value="{{ $role->id }}" {{ in_array($role->id, old('roles', $user->roles->pluck('id')->toArray())) ? 'selected' : '' }}>
                             {{ $role->name }}
                         </option>
                     @endforeach
                 </select>
-                @error('role_id')
+                <small style="color: #666; font-size: 12px; display: block; margin-top: 5px;">Hold Ctrl (Windows) or Cmd (Mac) to select multiple roles</small>
+                @error('roles')
                     <p style="color: #dc3545; font-size: 12px; margin-top: 5px;">{{ $message }}</p>
                 @enderror
             </div>
@@ -101,11 +102,18 @@
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                 <div>
                     <label for="password" style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">New Password</label>
-                    <input type="password" name="password" id="password" value=""
-                        style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;"
-                        class="@error('password') border-red-500 @enderror"
-                        autocomplete="new-password"
-                        onchange="togglePasswordConfirmation()">
+                    <div style="position: relative;">
+                        <input type="password" name="password" id="password" value=""
+                            style="width: 100%; padding: 12px 40px 12px 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;"
+                            class="@error('password') border-red-500 @enderror"
+                            autocomplete="new-password"
+                            onchange="togglePasswordConfirmation()">
+                        <button type="button"
+                            onclick="togglePasswordVisibility('password', this)"
+                            style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); border: none; background: transparent; cursor: pointer; color: #666;">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
                     <small style="color: #666; font-size: 12px; display: block; margin-top: 5px;">Min 8 chars, 1 uppercase, 1 lowercase, 1 number</small>
                     @error('password')
                         <p style="color: #dc3545; font-size: 12px; margin-top: 5px;">{{ $message }}</p>
@@ -114,11 +122,18 @@
 
                 <div>
                     <label for="password_confirmation" style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Confirm New Password</label>
-                    <input type="password" name="password_confirmation" id="password_confirmation" value=""
-                        style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;"
-                        class="@error('password_confirmation') border-red-500 @enderror"
-                        autocomplete="new-password"
-                        disabled>
+                    <div style="position: relative;">
+                        <input type="password" name="password_confirmation" id="password_confirmation" value=""
+                            style="width: 100%; padding: 12px 40px 12px 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;"
+                            class="@error('password_confirmation') border-red-500 @enderror"
+                            autocomplete="new-password"
+                            disabled>
+                        <button type="button"
+                            onclick="togglePasswordVisibility('password_confirmation', this)"
+                            style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); border: none; background: transparent; cursor: pointer; color: #666;">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
                     @error('password_confirmation')
                         <p style="color: #dc3545; font-size: 12px; margin-top: 5px;">{{ $message }}</p>
                     @enderror
@@ -139,19 +154,48 @@
 
 <script>
 function toggleBranchSelection() {
-    const roleSelect = document.getElementById('role_id');
+    const roleSelect = document.getElementById('roles');
     const branchesSection = document.getElementById('branches-section');
     const branchesSelect = document.getElementById('branches');
-    const selectedRole = roleSelect.options[roleSelect.selectedIndex];
-    const roleName = selectedRole ? selectedRole.text.toLowerCase() : '';
     
-    if (roleName.includes('super admin')) {
+    // Check if any selected role is Super Admin
+    let hasSuperAdmin = false;
+    for (let i = 0; i < roleSelect.options.length; i++) {
+        if (roleSelect.options[i].selected) {
+            const roleName = roleSelect.options[i].text.toLowerCase();
+            if (roleName.includes('super admin')) {
+                hasSuperAdmin = true;
+                break;
+            }
+        }
+    }
+    
+    if (hasSuperAdmin) {
         branchesSection.style.display = 'none';
         branchesSelect.removeAttribute('required');
-        branchesSelect.value = null;
+        // Clear all selections
+        for (let i = 0; i < branchesSelect.options.length; i++) {
+            branchesSelect.options[i].selected = false;
+        }
     } else {
         branchesSection.style.display = 'block';
         branchesSelect.setAttribute('required', 'required');
+    }
+}
+
+function togglePasswordVisibility(inputId, btn) {
+    const input = document.getElementById(inputId);
+    const icon = btn.querySelector('i');
+    if (!input) return;
+
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
     }
 }
 

@@ -76,7 +76,10 @@ class RolePermissionController extends Controller
             return !$hasPermissions; // Only include roles without permissions
         });
         
-        $permissions = Permission::orderByRaw('COALESCE(form_name, name)')->get();
+        // Get all active permissions, ensuring we get all of them
+        $permissions = Permission::where('is_active', true)
+            ->orderByRaw('COALESCE(form_name, name) ASC')
+            ->get();
         
         return view('masters.roles.assign-permissions', compact('roles', 'permissions'));
     }
@@ -104,8 +107,25 @@ class RolePermissionController extends Controller
             abort(403, 'Super Admin role has access to all forms by default and cannot be modified.');
         }
         
-        // Use form_name if exists, otherwise fallback to name
-        $permissions = Permission::orderByRaw('COALESCE(form_name, name)')->get();
+        // Get all active permissions
+        // First try with COALESCE, if that fails, use a simpler query
+        try {
+            $permissions = Permission::where('is_active', true)
+                ->orderByRaw('COALESCE(form_name, name) ASC')
+                ->get();
+        } catch (\Exception $e) {
+            // Fallback: order by form_name first, then name
+            $permissions = Permission::where('is_active', true)
+                ->orderBy('form_name', 'asc')
+                ->orderBy('name', 'asc')
+                ->get();
+        }
+        
+        // Ensure we have all permissions - if count is less than expected, log it
+        $expectedCount = Permission::where('is_active', true)->count();
+        if ($permissions->count() < $expectedCount) {
+            \Log::warning('Permission count mismatch. Expected: ' . $expectedCount . ', Got: ' . $permissions->count());
+        }
         // Load existing permissions for the role
         $role->load('permissions');
         

@@ -36,10 +36,17 @@
         @csrf
         <div style="margin-bottom: 20px;">
             <label for="current_password" style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Current Password <span style="color: red;">*</span></label>
-            <input type="password" name="current_password" id="current_password" required
-                style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;"
-                class="@error('current_password') border-red-500 @enderror"
-                autocomplete="current-password">
+            <div style="position: relative;">
+                <input type="password" name="current_password" id="current_password" required
+                    style="width: 100%; padding: 12px 40px 12px 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;"
+                    class="@error('current_password') border-red-500 @enderror"
+                    autocomplete="current-password">
+                <button type="button"
+                    onclick="togglePasswordVisibility('current_password', this)"
+                    style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); border: none; background: transparent; cursor: pointer; color: #666;">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </div>
             @error('current_password')
                 <p style="color: #dc3545; font-size: 12px; margin-top: 5px;">{{ $message }}</p>
             @enderror
@@ -48,10 +55,17 @@
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
             <div>
                 <label for="new_password" style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">New Password <span style="color: red;">*</span></label>
-                <input type="password" name="new_password" id="new_password" required
-                    style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;"
-                    class="@error('new_password') border-red-500 @enderror"
-                    autocomplete="new-password">
+                <div style="position: relative;">
+                    <input type="password" name="new_password" id="new_password" required
+                        style="width: 100%; padding: 12px 40px 12px 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;"
+                        class="@error('new_password') border-red-500 @enderror"
+                        autocomplete="new-password">
+                    <button type="button"
+                        onclick="togglePasswordVisibility('new_password', this)"
+                        style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); border: none; background: transparent; cursor: pointer; color: #666;">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
                 <small style="color: #666; font-size: 12px; display: block; margin-top: 5px;">Minimum 8 characters, 1 uppercase, 1 lowercase, 1 number</small>
                 @error('new_password')
                     <p style="color: #dc3545; font-size: 12px; margin-top: 5px;">{{ $message }}</p>
@@ -60,10 +74,17 @@
 
             <div>
                 <label for="new_password_confirmation" style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Confirm New Password <span style="color: red;">*</span></label>
-                <input type="password" name="new_password_confirmation" id="new_password_confirmation" required
-                    style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;"
-                    class="@error('new_password_confirmation') border-red-500 @enderror"
-                    autocomplete="new-password">
+                <div style="position: relative;">
+                    <input type="password" name="new_password_confirmation" id="new_password_confirmation" required
+                        style="width: 100%; padding: 12px 40px 12px 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;"
+                        class="@error('new_password_confirmation') border-red-500 @enderror"
+                        autocomplete="new-password">
+                    <button type="button"
+                        onclick="togglePasswordVisibility('new_password_confirmation', this)"
+                        style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); border: none; background: transparent; cursor: pointer; color: #666;">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
                 @error('new_password_confirmation')
                     <p style="color: #dc3545; font-size: 12px; margin-top: 5px;">{{ $message }}</p>
                 @enderror
@@ -91,6 +112,22 @@
         // Clear any validation messages
         const errorMessages = document.querySelectorAll('.error-message');
         errorMessages.forEach(msg => msg.remove());
+    }
+
+    function togglePasswordVisibility(inputId, btn) {
+        const input = document.getElementById(inputId);
+        const icon = btn.querySelector('i');
+        if (!input) return;
+
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
     }
 </script>
 @endpush

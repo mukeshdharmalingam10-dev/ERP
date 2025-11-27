@@ -202,9 +202,36 @@ class User extends Authenticatable
             // Find permission for the given form in this role
             $permission = $role->permissions->firstWhere('form_name', $form);
             
-            // If permission exists and the specific type (read/write/delete) is true on PIVOT
-            if ($permission && $permission->pivot->$checkColumn) {
-                return true;
+            if ($permission) {
+                $pivot = $permission->pivot;
+
+                // Hierarchical permission logic:
+                // - Delete => full access (delete, write, read)
+                // - Write  => write + read
+                // - Read   => read only
+                $hasPermission = false;
+
+                switch ($checkColumn) {
+                    case 'read':
+                        $hasPermission = ($pivot->read ?? false)
+                            || ($pivot->write ?? false)
+                            || ($pivot->delete ?? false);
+                        break;
+                    case 'write':
+                        $hasPermission = ($pivot->write ?? false)
+                            || ($pivot->delete ?? false);
+                        break;
+                    case 'delete':
+                        $hasPermission = ($pivot->delete ?? false);
+                        break;
+                    default:
+                        $hasPermission = ($pivot->$checkColumn ?? false);
+                        break;
+                }
+
+                if ($hasPermission) {
+                    return true;
+                }
             }
         }
 

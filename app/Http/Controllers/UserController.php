@@ -209,10 +209,6 @@ class UserController extends Controller
             abort(403, 'Only Super Admin can update users.');
         }
         
-        $roles = \App\Models\Role::whereIn('id', $request->roles)->get();
-        $primaryRole = $roles->firstWhere('slug', 'super-admin') ?? $roles->first();
-        $role = $primaryRole; // For legacy logic below
-        
         $rules = [
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $id,
@@ -221,12 +217,6 @@ class UserController extends Controller
             'roles.*' => 'exists:roles,id',
             'status' => 'required|in:active,inactive,locked',
         ];
-        
-        // Validate branches only if not Super Admin
-        if ($role->slug !== 'super-admin') {
-            $rules['branches'] = 'required|array|min:1';
-            $rules['branches.*'] = 'exists:branches,id';
-        }
         
         // Only validate password if it's provided
         if ($request->filled('password')) {
@@ -240,6 +230,18 @@ class UserController extends Controller
         }
         
         $request->validate($rules);
+        
+        // Get roles after validation
+        $roles = \App\Models\Role::whereIn('id', $request->roles)->get();
+        $primaryRole = $roles->firstWhere('slug', 'super-admin') ?? $roles->first();
+        $role = $primaryRole; // For legacy logic below
+        
+        // Validate branches only if not Super Admin
+        if ($role->slug !== 'super-admin') {
+            if (!$request->branches || !is_array($request->branches) || count($request->branches) == 0) {
+                return back()->withErrors(['branches' => 'At least one branch is required for non-Super Admin users.'])->withInput();
+            }
+        }
         
         $data = $request->only(['name', 'email', 'mobile', 'status']);
         $data['role_id'] = $primaryRole->id;
@@ -256,13 +258,22 @@ class UserController extends Controller
         // Sync branches (many-to-many) - only if not Super Admin
         if ($role->slug !== 'super-admin' && $request->branches) {
             $user->branches()->sync($request->branches);
+            $branchCount = count($request->branches);
         } elseif ($role->slug === 'super-admin') {
             // Remove all branch assignments for Super Admin
             $user->branches()->detach();
+            $branchCount = 0;
+        } else {
+            $branchCount = 0;
         }
 
-        return redirect()->route('users.index')
-            ->with('success', 'User updated successfully and assigned to ' . count($request->branches) . ' branch(es).');
+        $message = 'User updated successfully';
+        if ($branchCount > 0) {
+            $message .= ' and assigned to ' . $branchCount . ' branch(es)';
+        }
+        $message .= '.';
+
+        return redirect()->route('users.index')->with('success', $message);
     }
 
     /**
