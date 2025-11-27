@@ -375,6 +375,14 @@
                         <i class="fas fa-gavel"></i>
                         <span>Tenders</span>
                     </a>
+                    <a href="{{ route('customer-orders.index') }}" class="menu-item" title="Customer Orders">
+                        <i class="fas fa-file-contract"></i>
+                        <span>Customer Orders</span>
+                    </a>
+                    <a href="{{ route('tender-evaluations.index') }}" class="menu-item" title="Tender Evaluation">
+                        <i class="fas fa-clipboard-check"></i>
+                        <span>Tender Evaluation</span>
+                    </a>
                 </div>
                 @endif
 
@@ -535,6 +543,12 @@
                 @if(session('success'))
                     <div style="background: #d4edda; color: #155724; padding: 12px; border-radius: 5px; margin-bottom: 20px;">
                         {{ session('success') }}
+                    </div>
+                @endif
+
+                @if(session('error'))
+                    <div style="background: #f8d7da; color: #721c24; padding: 12px; border-radius: 5px; margin-bottom: 20px; border: 1px solid #f5c6cb;">
+                        {{ session('error') }}
                     </div>
                 @endif
 

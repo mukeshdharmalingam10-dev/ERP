@@ -48,7 +48,18 @@ class CustomerController extends Controller
 
         $data = $request->all();
         $data['branch_id'] = $this->getActiveBranchId();
-        \App\Models\Customer::create($data);
+        $customer = \App\Models\Customer::create($data);
+
+        // If the request expects JSON (e.g., from Tender form modal), return the created customer
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'customer' => [
+                    'id' => $customer->id,
+                    'company_name' => $customer->company_name,
+                ],
+            ]);
+        }
 
         return redirect()->route('customers.index')->with('success', 'Customer created successfully.');
     }

@@ -53,9 +53,11 @@
                         <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Production Dept</label>
                         <select name="production_dept" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
                             <option value="">Select Department</option>
-                            <option value="Door Section" {{ old('production_dept') == 'Door Section' ? 'selected' : '' }}>Door Section</option>
-                            <option value="Fiber tables&windows" {{ old('production_dept') == 'Fiber tables&windows' ? 'selected' : '' }}>Fiber tables&windows</option>
-                            <option value="Railways" {{ old('production_dept') == 'Railways' ? 'selected' : '' }}>Railways</option>
+                            @foreach($productionDepartments as $dept)
+                                <option value="{{ $dept->name }}" {{ old('production_dept') == $dept->name ? 'selected' : '' }}>
+                                    {{ $dept->name }}
+                                </option>
+                            @endforeach
                         </select>
                     </div>
                     <div>
@@ -97,7 +99,7 @@
                     <input type="text" name="billing_address_line_2" id="billing_address_line_2" value="{{ old('billing_address_line_2') }}"
                         style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
                 </div>
-                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px;">
+                <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px;">
                     <div>
                         <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">City</label>
                         <input type="text" name="billing_city" id="billing_city" value="{{ old('billing_city') }}"
@@ -250,39 +252,45 @@
             <div style="overflow-x: auto; padding: 20px;">
                 <table style="width: 100%; border-collapse: collapse;">
                     <thead>
-                        <tr style="background: #f8f9fa; border-bottom: 2px solid #dee2e6;">
-                            <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">PL Code</th>
-                            <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Title</th>
-                            <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Description</th>
-                            <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Delivery Location</th>
-                            <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Qty</th>
-                            <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Unit</th>
-                            <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Request for Price</th>
-                            <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Price Received</th>
-                            <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Price Quoted</th>
-                            <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Tender Status</th>
-                            <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Bid Result</th>
-                            <th style="padding: 12px; text-align: center; color: #333; font-weight: 600;">Action</th>
-                        </tr>
+                    <tr style="background: #f8f9fa; border-bottom: 2px solid #dee2e6;">
+                        <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">PL Code</th>
+                        <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Title</th>
+                        <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Description</th>
+                        <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Delivery Location</th>
+                        <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Qty</th>
+                        <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Unit</th>
+                        <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Request for Price</th>
+                        <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Price Received</th>
+                        <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Price Quoted</th>
+                        <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Tender Status</th>
+                        <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Bid Result</th>
+                        <th style="padding: 12px; text-align: center; color: #333; font-weight: 600;">Action</th>
+                    </tr>
                     </thead>
                     <tbody id="itemRows">
                         <!-- Rows will be added here dynamically -->
                     </tbody>
                 </table>
+
+                <!-- Hidden Unit Options Template -->
+                <select id="unitOptionsTemplate" style="display: none;">
+                    <option value="">Select Unit</option>
+                    @foreach($units as $unit)
+                        <option value="{{ $unit->id }}">{{ $unit->symbol }}</option>
+                    @endforeach
+                </select>
             </div>
         </div>
 
         <!-- Technical Specifications Section (will be handled per item) -->
-        <!-- Financial Tabulation Section -->
+
+        <!-- Tender Status & Bid Result (Header) -->
         <div style="background: white; border: 1px solid #dee2e6; border-radius: 5px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-            <div style="background: #f8f9fa; padding: 15px 20px; border-bottom: 1px solid #dee2e6; border-radius: 5px 5px 0 0; display: flex; justify-content: space-between; align-items: center;">
-                <h3 style="margin: 0; color: #667eea; font-size: 18px; font-weight: 600;">Financial Tabulation</h3>
-                <button type="button" onclick="addFinancialTabulationRow()" style="padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 5px; font-size: 14px; cursor: pointer; font-weight: 500;">
-                    <i class="fas fa-plus"></i> Add Tabulation
-                </button>
+            <div style="background: #f8f9fa; padding: 15px 20px; border-bottom: 1px solid #dee2e6; border-radius: 5px 5px 0 0;">
+                <h3 style="margin: 0; color: #667eea; font-size: 18px; font-weight: 600;">Tender Status & Bid Result</h3>
             </div>
             <div style="padding: 20px;">
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 15px;">
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px;">
                     <div>
                         <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Tender Status</label>
                         <select name="tender_status" id="tender_status" onchange="toggleBidResult()" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
@@ -298,7 +306,34 @@
                             <option value="Bid not Awarded" {{ old('bid_result') == 'Bid not Awarded' ? 'selected' : '' }}>Bid not Awarded</option>
                         </select>
                     </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Financial Tabulation</label>
+                        <input type="file" name="financial_tabulation_attachment" accept=".pdf,.doc,.docx"
+                               style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Technical Specification</label>
+                        <input type="file" name="technical_spec_attachment" accept=".pdf,.doc,.docx"
+                               style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Rank</label>
+                        <input type="text" name="technical_spec_rank" value="{{ old('technical_spec_rank') }}"
+                               style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
+                    </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Bid Closing Information Section -->
+        <div style="background: white; border: 1px solid #dee2e6; border-radius: 5px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+            <div style="background: #f8f9fa; padding: 15px 20px; border-bottom: 1px solid #dee2e6; border-radius: 5px 5px 0 0; display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0; color: #667eea; font-size: 18px; font-weight: 600;">Bid Closing Information</h3>
+                <button type="button" onclick="addFinancialTabulationRow()" style="padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 5px; font-size: 14px; cursor: pointer; font-weight: 500;">
+                    <i class="fas fa-plus"></i> Add
+                </button>
+            </div>
+            <div style="padding: 20px;">
                 <div style="overflow-x: auto;">
                     <table style="width: 100%; border-collapse: collapse;">
                         <thead>
@@ -409,7 +444,6 @@
     let itemRowCount = 0;
     let financialTabulationRowCount = 0;
     let remarkRowCount = 0;
-    const units = @json($units);
 
     function addItemRow() {
         itemRowCount++;
@@ -433,8 +467,7 @@
                 </td>
                 <td style="padding: 10px;">
                     <select name="items[${itemRowCount}][unit_id]" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
-                        <option value="">Select Unit</option>
-                        ${units.map(u => `<option value="${u.id}">${u.symbol}</option>`).join('')}
+                        ${document.getElementById('unitOptionsTemplate').innerHTML}
                     </select>
                 </td>
                 <td style="padding: 10px;">
@@ -458,9 +491,6 @@
                 <td style="padding: 10px; text-align: center;">
                     <button type="button" onclick="removeItemRow(${itemRowCount})" style="padding: 6px 12px; background: #dc3545; color: white; border: none; border-radius: 5px; font-size: 12px; cursor: pointer;">
                         <i class="fas fa-trash"></i>
-                    </button>
-                    <button type="button" onclick="openTechnicalSpecModal(${itemRowCount})" style="padding: 6px 12px; background: #667eea; color: white; border: none; border-radius: 5px; font-size: 12px; cursor: pointer; margin-top: 5px;">
-                        <i class="fas fa-cog"></i> Specs
                     </button>
                 </td>
             </tr>
@@ -530,16 +560,56 @@
     }
 
     function fetchCustomerDetails(id) {
-        if(!id) return;
+        const contactPerson = document.getElementById('contact_person');
+        const addr1 = document.getElementById('billing_address_line_1');
+        const addr2 = document.getElementById('billing_address_line_2');
+        const city = document.getElementById('billing_city');
+        const state = document.getElementById('billing_state');
+        const country = document.getElementById('billing_country');
+        const pincode = document.getElementById('billing_pincode');
+
+        if (!id) {
+            // Clear and make fields editable if no company selected
+            [contactPerson, addr1, addr2, city, state, country, pincode].forEach(input => {
+                if (input) {
+                    input.value = '';
+                    input.readOnly = false;
+                }
+            });
+            return;
+        }
+
         fetch(`{{ url('tenders/customer') }}/${id}`)
             .then(response => response.json())
             .then(data => {
-                document.getElementById('billing_address_line_1').value = data.billing_address_line_1 || '';
-                document.getElementById('billing_address_line_2').value = data.billing_address_line_2 || '';
-                document.getElementById('billing_city').value = data.billing_city || '';
-                document.getElementById('billing_state').value = data.billing_state || '';
-                document.getElementById('billing_pincode').value = data.billing_pincode || '';
-                document.getElementById('contact_person').value = data.contact_name || '';
+                if (contactPerson) {
+                    contactPerson.value = data.contact_name || '';
+                    contactPerson.readOnly = true;
+                }
+                if (addr1) {
+                    addr1.value = data.billing_address_line_1 || '';
+                    addr1.readOnly = true;
+                }
+                if (addr2) {
+                    addr2.value = data.billing_address_line_2 || '';
+                    addr2.readOnly = true;
+                }
+                if (city) {
+                    city.value = data.billing_city || '';
+                    city.readOnly = true;
+                }
+                if (state) {
+                    state.value = data.billing_state || '';
+                    state.readOnly = true;
+                }
+                if (country) {
+                    country.value = data.billing_country || '';
+                    country.readOnly = true;
+                }
+                if (pincode) {
+                    pincode.value = data.billing_pincode || '';
+                    pincode.readOnly = true;
+                }
             });
     }
 
@@ -594,9 +664,53 @@
 
     function saveCustomer(event) {
         event.preventDefault();
-        const formData = new FormData(event.target);
-        // Submit form normally - will redirect, then user can refresh
-        event.target.submit();
+        const form = event.target;
+        const formData = new FormData(form);
+
+        fetch(form.action, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json',
+            },
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(data => {
+                    throw data;
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data && data.success && data.customer) {
+                const companySelect = document.getElementById('company_id');
+                if (companySelect) {
+                    const option = document.createElement('option');
+                    option.value = data.customer.id;
+                    option.textContent = data.customer.company_name;
+                    option.selected = true;
+                    companySelect.appendChild(option);
+
+                    // Trigger fetch of billing/contact details
+                    fetchCustomerDetails(data.customer.id);
+                }
+                closeAddCustomerModal();
+            } else {
+                alert('Customer saved, but response was unexpected.');
+            }
+        })
+        .catch(error => {
+            let message = 'Failed to save customer.';
+            if (error && error.errors) {
+                const firstKey = Object.keys(error.errors)[0];
+                if (firstKey) {
+                    message = error.errors[firstKey][0] || message;
+                }
+            }
+            alert(message);
+        });
     }
 
     function showDescriptionModal(rowId) {
@@ -604,22 +718,121 @@
         alert('Description:\n\n' + description);
     }
 
-    function openTechnicalSpecModal(rowId) {
-        // This would open a modal to add technical specifications
-        // For now, we'll use a simple prompt
-        const spec = prompt('Enter Technical Specification:');
-        const rank = prompt('Enter Rank:');
-        if (spec) {
-            // Store in hidden fields or handle via AJAX
-            // For now, we'll add it to a hidden div
-            const hiddenDiv = document.createElement('div');
-            hiddenDiv.innerHTML = `<input type="hidden" name="items[${rowId}][technical_specifications][0][specification]" value="${spec}"><input type="hidden" name="items[${rowId}][technical_specifications][0][rank]" value="${rank || ''}">`;
-            document.getElementById(`item_row_${rowId}`).appendChild(hiddenDiv);
-        }
-    }
+    // Rebuild rows from old input on validation error, otherwise add one empty row
+    @php $oldItems = old('items'); @endphp
+    @if($oldItems)
+        @foreach($oldItems as $idx => $item)
+            itemRowCount++;
+            const oldItemHtml{{ $idx }} = `
+                <tr id="item_row_${itemRowCount}" style="border-bottom: 1px solid #dee2e6;">
+                    <td style="padding: 10px;">
+                        <input type="text" name="items[${itemRowCount}][pl_code]" value="{{ $item['pl_code'] ?? '' }}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
+                    </td>
+                    <td style="padding: 10px;">
+                        <input type="text" name="items[${itemRowCount}][title]" value="{{ $item['title'] ?? '' }}" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
+                    </td>
+                    <td style="padding: 10px;">
+                        <textarea name="items[${itemRowCount}][description]" rows="2" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">{{ $item['description'] ?? '' }}</textarea>
+                        <button type="button" onclick="showDescriptionModal('${itemRowCount}')" style="margin-top: 5px; padding: 4px 8px; background: #667eea; color: white; border: none; border-radius: 3px; font-size: 12px; cursor: pointer;">Show More</button>
+                    </td>
+                    <td style="padding: 10px;">
+                        <input type="text" name="items[${itemRowCount}][delivery_location]" value="{{ $item['delivery_location'] ?? '' }}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
+                    </td>
+                    <td style="padding: 10px;">
+                        <input type="number" name="items[${itemRowCount}][qty]" value="{{ $item['qty'] ?? '' }}" step="0.01" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
+                    </td>
+                    <td style="padding: 10px;">
+                        <select name="items[${itemRowCount}][unit_id]" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
+                            ${document.getElementById('unitOptionsTemplate').innerHTML}
+                        </select>
+                    </td>
+                    <td style="padding: 10px;">
+                        <select name="items[${itemRowCount}][request_for_price]" onchange="handleRequestForPrice(${itemRowCount}, this.value)" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
+                            <option value="No" {{ (isset($item['request_for_price']) && $item['request_for_price'] === 'No') ? 'selected' : '' }}>No</option>
+                            <option value="Yes" {{ (isset($item['request_for_price']) && $item['request_for_price'] === 'Yes') ? 'selected' : '' }}>Yes</option>
+                        </select>
+                    </td>
+                    <td style="padding: 10px;">
+                        <input type="number" name="items[${itemRowCount}][price_received]" value="{{ $item['price_received'] ?? '' }}" step="0.01" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
+                    </td>
+                    <td style="padding: 10px;">
+                        <input type="number" name="items[${itemRowCount}][price_quoted]" value="{{ $item['price_quoted'] ?? '' }}" step="0.01" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
+                    </td>
+                    <td style="padding: 10px;">
+                        <input type="text" name="items[${itemRowCount}][tender_status]" value="{{ $item['tender_status'] ?? '' }}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
+                    </td>
+                    <td style="padding: 10px;">
+                        <input type="text" name="items[${itemRowCount}][bid_result]" value="{{ $item['bid_result'] ?? '' }}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
+                    </td>
+                    <td style="padding: 10px; text-align: center;">
+                        <button type="button" onclick="removeItemRow(${itemRowCount})" style="padding: 6px 12px; background: #dc3545; color: white; border: none; border-radius: 5px; font-size: 12px; cursor: pointer;">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+            document.getElementById('itemRows').insertAdjacentHTML('beforeend', oldItemHtml{{ $idx }});
+        @endforeach
+    @else
+        addItemRow();
+    @endif
 
-    // Add initial item row
-    addItemRow();
+    // Rebuild financial tabulations from old input
+    @php $oldTabs = old('financial_tabulations'); @endphp
+    @if($oldTabs)
+        @foreach($oldTabs as $fidx => $tab)
+            financialTabulationRowCount++;
+            const oldFtHtml{{ $fidx }} = `
+                <tr id="financial_tab_row_${financialTabulationRowCount}" style="border-bottom: 1px solid #dee2e6;">
+                    <td style="padding: 10px;">
+                        <input type="text" name="financial_tabulations[${financialTabulationRowCount}][pl_number]" value="{{ $tab['pl_number'] ?? '' }}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
+                    </td>
+                    <td style="padding: 10px;">
+                        <input type="date" name="financial_tabulations[${financialTabulationRowCount}][bid_closed_date]" value="{{ $tab['bid_closed_date'] ?? '' }}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
+                    </td>
+                    <td style="padding: 10px; text-align: center;">
+                        <button type="button" onclick="removeFinancialTabulationRow(${financialTabulationRowCount})" style="padding: 6px 12px; background: #dc3545; color: white; border: none; border-radius: 5px; font-size: 12px; cursor: pointer;">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+            document.getElementById('financialTabulationRows').insertAdjacentHTML('beforeend', oldFtHtml{{ $fidx }});
+        @endforeach
+    @endif
+
+    // Rebuild remarks from old input
+    @php $oldRemarks = old('remarks'); @endphp
+    @if($oldRemarks)
+        @foreach($oldRemarks as $ridx => $remark)
+            remarkRowCount++;
+            const oldRemarkHtml{{ $ridx }} = `
+                <div id="remark_row_${remarkRowCount}" style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 15px; border: 1px solid #dee2e6;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <h4 style="margin: 0; color: #333;">Remark #${remarkRowCount}</h4>
+                        <button type="button" onclick="removeRemarkRow(${remarkRowCount})" style="padding: 6px 12px; background: #dc3545; color: white; border: none; border-radius: 5px; font-size: 12px; cursor: pointer;">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 15px; margin-bottom: 15px;">
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Date</label>
+                            <input type="date" name="remarks[${remarkRowCount}][date]" value="{{ $remark['date'] ?? date('Y-m-d') }}" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Corrigendum File</label>
+                            <input type="file" name="remarks[${remarkRowCount}][corrigendum_file]" accept=".pdf,.doc,.docx" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
+                        </div>
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Remarks</label>
+                        <textarea name="remarks[${remarkRowCount}][remarks]" rows="3" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">{{ $remark['remarks'] ?? '' }}</textarea>
+                    </div>
+                </div>
+            `;
+            document.getElementById('remarkRows').insertAdjacentHTML('beforeend', oldRemarkHtml{{ $ridx }});
+        @endforeach
+    @endif
 </script>
 @endpush
 @endsection

@@ -54,9 +54,11 @@
                         <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Production Dept</label>
                         <select name="production_dept" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
                             <option value="">Select Department</option>
-                            <option value="Door Section" {{ old('production_dept', $tender->production_dept) == 'Door Section' ? 'selected' : '' }}>Door Section</option>
-                            <option value="Fiber tables&windows" {{ old('production_dept', $tender->production_dept) == 'Fiber tables&windows' ? 'selected' : '' }}>Fiber tables&windows</option>
-                            <option value="Railways" {{ old('production_dept', $tender->production_dept) == 'Railways' ? 'selected' : '' }}>Railways</option>
+                            @foreach($productionDepartments as $dept)
+                                <option value="{{ $dept->name }}" {{ old('production_dept', $tender->production_dept) == $dept->name ? 'selected' : '' }}>
+                                    {{ $dept->name }}
+                                </option>
+                            @endforeach
                         </select>
                     </div>
                     <div>
@@ -98,25 +100,25 @@
                     <input type="text" name="billing_address_line_2" id="billing_address_line_2" value="{{ old('billing_address_line_2', $tender->billing_address_line_2) }}"
                         style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
                 </div>
-                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px;">
+                <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px;">
                     <div>
                         <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">City</label>
-                        <input type="text" name="billing_city" id="billing_city" value="{{ old('billing_city') }}"
+                        <input type="text" name="billing_city" id="billing_city" value="{{ old('billing_city', $tender->billing_city) }}"
                             style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
                     </div>
                     <div>
                         <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">State/Province</label>
-                        <input type="text" name="billing_state" id="billing_state" value="{{ old('billing_state') }}"
+                        <input type="text" name="billing_state" id="billing_state" value="{{ old('billing_state', $tender->billing_state) }}"
                             style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
                     </div>
                     <div>
                         <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Country</label>
-                        <input type="text" name="billing_country" id="billing_country" value="{{ old('billing_country') }}"
+                        <input type="text" name="billing_country" id="billing_country" value="{{ old('billing_country', $tender->billing_country) }}"
                             style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
                     </div>
                     <div>
                         <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">PinCode</label>
-                        <input type="text" name="billing_pincode" id="billing_pincode" value="{{ old('billing_pincode') }}"
+                        <input type="text" name="billing_pincode" id="billing_pincode" value="{{ old('billing_pincode', $tender->billing_pincode) }}"
                             style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
                     </div>
                 </div>
@@ -132,20 +134,20 @@
                 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 15px;">
                     <div>
                         <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Publishing Date</label>
-                        <input type="date" name="publishing_date" value="{{ old('publishing_date') }}"
+                        <input type="date" name="publishing_date" value="{{ old('publishing_date', optional($tender->publishing_date)->format('Y-m-d')) }}"
                             style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
                     </div>
                     <div>
                         <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Closing Date/Time</label>
-                        <input type="datetime-local" name="closing_date_time" value="{{ old('closing_date_time') }}"
+                        <input type="datetime-local" name="closing_date_time" value="{{ old('closing_date_time', optional($tender->closing_date_time)->format('Y-m-d\\TH:i')) }}"
                             style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
                     </div>
                     <div>
                         <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Bidding Type</label>
                         <select name="bidding_type" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
                             <option value="">Select</option>
-                            <option value="Online" {{ old('bidding_type') == 'Online' ? 'selected' : '' }}>Online</option>
-                            <option value="Offline" {{ old('bidding_type') == 'Offline' ? 'selected' : '' }}>Offline</option>
+                            <option value="Online" {{ old('bidding_type', $tender->bidding_type) == 'Online' ? 'selected' : '' }}>Online</option>
+                            <option value="Offline" {{ old('bidding_type', $tender->bidding_type) == 'Offline' ? 'selected' : '' }}>Offline</option>
                         </select>
                     </div>
                 </div>
@@ -154,26 +156,26 @@
                         <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Tender Type</label>
                         <select name="tender_type" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
                             <option value="">Select</option>
-                            <option value="Open" {{ old('tender_type') == 'Open' ? 'selected' : '' }}>Open</option>
-                            <option value="Limited" {{ old('tender_type') == 'Limited' ? 'selected' : '' }}>Limited</option>
-                            <option value="Special Limited" {{ old('tender_type') == 'Special Limited' ? 'selected' : '' }}>Special Limited</option>
-                            <option value="Single" {{ old('tender_type') == 'Single' ? 'selected' : '' }}>Single</option>
+                            <option value="Open" {{ old('tender_type', $tender->tender_type) == 'Open' ? 'selected' : '' }}>Open</option>
+                            <option value="Limited" {{ old('tender_type', $tender->tender_type) == 'Limited' ? 'selected' : '' }}>Limited</option>
+                            <option value="Special Limited" {{ old('tender_type', $tender->tender_type) == 'Special Limited' ? 'selected' : '' }}>Special Limited</option>
+                            <option value="Single" {{ old('tender_type', $tender->tender_type) == 'Single' ? 'selected' : '' }}>Single</option>
                         </select>
                     </div>
                     <div>
                         <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Contract Type</label>
                         <select name="contract_type" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
                             <option value="">Select</option>
-                            <option value="Goods" {{ old('contract_type') == 'Goods' ? 'selected' : '' }}>Goods</option>
-                            <option value="Service" {{ old('contract_type') == 'Service' ? 'selected' : '' }}>Service</option>
+                            <option value="Goods" {{ old('contract_type', $tender->contract_type) == 'Goods' ? 'selected' : '' }}>Goods</option>
+                            <option value="Service" {{ old('contract_type', $tender->contract_type) == 'Service' ? 'selected' : '' }}>Service</option>
                         </select>
                     </div>
                     <div>
                         <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Bidding System</label>
                         <select name="bidding_system" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
                             <option value="">Select</option>
-                            <option value="Single Packet" {{ old('bidding_system') == 'Single Packet' ? 'selected' : '' }}>Single Packet</option>
-                            <option value="Two Packet" {{ old('bidding_system') == 'Two Packet' ? 'selected' : '' }}>Two Packet</option>
+                            <option value="Single Packet" {{ old('bidding_system', $tender->bidding_system) == 'Single Packet' ? 'selected' : '' }}>Single Packet</option>
+                            <option value="Two Packet" {{ old('bidding_system', $tender->bidding_system) == 'Two Packet' ? 'selected' : '' }}>Two Packet</option>
                         </select>
                     </div>
                 </div>
@@ -182,18 +184,18 @@
                         <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Procure from Approved Source</label>
                         <select name="procure_from_approved_source" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
                             <option value="">Select</option>
-                            <option value="Yes" {{ old('procure_from_approved_source') == 'Yes' ? 'selected' : '' }}>Yes</option>
-                            <option value="No" {{ old('procure_from_approved_source') == 'No' ? 'selected' : '' }}>No</option>
+                            <option value="Yes" {{ old('procure_from_approved_source', $tender->procure_from_approved_source) == 'Yes' ? 'selected' : '' }}>Yes</option>
+                            <option value="No" {{ old('procure_from_approved_source', $tender->procure_from_approved_source) == 'No' ? 'selected' : '' }}>No</option>
                         </select>
                     </div>
                     <div>
                         <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Tender Document Cost</label>
-                        <input type="number" name="tender_document_cost" step="0.01" value="{{ old('tender_document_cost') }}"
+                        <input type="number" name="tender_document_cost" step="0.01" value="{{ old('tender_document_cost', $tender->tender_document_cost) }}"
                             style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
                     </div>
                     <div>
                         <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">EMD (Earnest Money Deposit)</label>
-                        <input type="number" name="emd" step="0.01" value="{{ old('emd') }}"
+                        <input type="number" name="emd" step="0.01" value="{{ old('emd', $tender->emd) }}"
                             style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
                     </div>
                 </div>
@@ -202,33 +204,33 @@
                         <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">RA Enabled</label>
                         <select name="ra_enabled" id="ra_enabled" onchange="toggleRADate()" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
                             <option value="">Select</option>
-                            <option value="Yes" {{ old('ra_enabled') == 'Yes' ? 'selected' : '' }}>Yes</option>
-                            <option value="No" {{ old('ra_enabled') == 'No' ? 'selected' : '' }}>No</option>
+                            <option value="Yes" {{ old('ra_enabled', $tender->ra_enabled) == 'Yes' ? 'selected' : '' }}>Yes</option>
+                            <option value="No" {{ old('ra_enabled', $tender->ra_enabled) == 'No' ? 'selected' : '' }}>No</option>
                         </select>
                     </div>
                     <div>
                         <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">RA Date & Time</label>
-                        <input type="datetime-local" name="ra_date_time" id="ra_date_time" value="{{ old('ra_date_time') }}"
+                        <input type="datetime-local" name="ra_date_time" id="ra_date_time" value="{{ old('ra_date_time', optional($tender->ra_date_time)->format('Y-m-d\\TH:i')) }}"
                             style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;" disabled>
                     </div>
                     <div>
                         <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Pre-Bid Conference Required</label>
                         <select name="pre_bid_conference_required" id="pre_bid_conference_required" onchange="togglePreBidDate()" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
                             <option value="">Select</option>
-                            <option value="Yes" {{ old('pre_bid_conference_required') == 'Yes' ? 'selected' : '' }}>Yes</option>
-                            <option value="No" {{ old('pre_bid_conference_required') == 'No' ? 'selected' : '' }}>No</option>
+                            <option value="Yes" {{ old('pre_bid_conference_required', $tender->pre_bid_conference_required) == 'Yes' ? 'selected' : '' }}>Yes</option>
+                            <option value="No" {{ old('pre_bid_conference_required', $tender->pre_bid_conference_required) == 'No' ? 'selected' : '' }}>No</option>
                         </select>
                     </div>
                 </div>
                 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 15px;">
                     <div>
                         <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Pre-Bid Conference Date</label>
-                        <input type="date" name="pre_bid_conference_date" id="pre_bid_conference_date" value="{{ old('pre_bid_conference_date') }}"
+                        <input type="date" name="pre_bid_conference_date" id="pre_bid_conference_date" value="{{ old('pre_bid_conference_date', optional($tender->pre_bid_conference_date)->format('Y-m-d')) }}"
                             style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;" disabled>
                     </div>
                     <div>
                         <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Inspection Agency</label>
-                        <input type="text" name="inspection_agency" value="{{ old('inspection_agency') }}"
+                        <input type="text" name="inspection_agency" value="{{ old('inspection_agency', $tender->inspection_agency) }}"
                             style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
                     </div>
                     <div>
@@ -251,20 +253,20 @@
             <div style="overflow-x: auto; padding: 20px;">
                 <table style="width: 100%; border-collapse: collapse;">
                     <thead>
-                        <tr style="background: #f8f9fa; border-bottom: 2px solid #dee2e6;">
-                            <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">PL Code</th>
-                            <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Title</th>
-                            <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Description</th>
-                            <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Delivery Location</th>
-                            <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Qty</th>
-                            <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Unit</th>
-                            <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Request for Price</th>
-                            <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Price Received</th>
-                            <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Price Quoted</th>
-                            <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Tender Status</th>
-                            <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Bid Result</th>
-                            <th style="padding: 12px; text-align: center; color: #333; font-weight: 600;">Action</th>
-                        </tr>
+                    <tr style="background: #f8f9fa; border-bottom: 2px solid #dee2e6;">
+                        <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">PL Code</th>
+                        <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Title</th>
+                        <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Description</th>
+                        <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Delivery Location</th>
+                        <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Qty</th>
+                        <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Unit</th>
+                        <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Request for Price</th>
+                        <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Price Received</th>
+                        <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Price Quoted</th>
+                        <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Tender Status</th>
+                        <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Bid Result</th>
+                        <th style="padding: 12px; text-align: center; color: #333; font-weight: 600;">Action</th>
+                    </tr>
                     </thead>
                     <tbody id="itemRows">
                         <!-- Rows will be added here dynamically -->
@@ -274,32 +276,71 @@
         </div>
 
         <!-- Technical Specifications Section (will be handled per item) -->
-        <!-- Financial Tabulation Section -->
+
+        <!-- Tender Status & Bid Result (Header) -->
         <div style="background: white; border: 1px solid #dee2e6; border-radius: 5px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-            <div style="background: #f8f9fa; padding: 15px 20px; border-bottom: 1px solid #dee2e6; border-radius: 5px 5px 0 0; display: flex; justify-content: space-between; align-items: center;">
-                <h3 style="margin: 0; color: #667eea; font-size: 18px; font-weight: 600;">Financial Tabulation</h3>
-                <button type="button" onclick="addFinancialTabulationRow()" style="padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 5px; font-size: 14px; cursor: pointer; font-weight: 500;">
-                    <i class="fas fa-plus"></i> Add Tabulation
-                </button>
+            <div style="background: #f8f9fa; padding: 15px 20px; border-bottom: 1px solid #dee2e6; border-radius: 5px 5px 0 0;">
+                <h3 style="margin: 0; color: #667eea; font-size: 18px; font-weight: 600;">Tender Status & Bid Result</h3>
             </div>
             <div style="padding: 20px;">
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 15px;">
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px;">
                     <div>
                         <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Tender Status</label>
                         <select name="tender_status" id="tender_status" onchange="toggleBidResult()" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
-                            <option value="Bid not coated" {{ old('tender_status', 'Bid not coated') == 'Bid not coated' ? 'selected' : '' }}>Bid not coated</option>
-                            <option value="Bid Coated" {{ old('tender_status') == 'Bid Coated' ? 'selected' : '' }}>Bid Coated</option>
+                            <option value="Bid not coated" {{ old('tender_status', $tender->tender_status ?? 'Bid not coated') == 'Bid not coated' ? 'selected' : '' }}>Bid not coated</option>
+                            <option value="Bid Coated" {{ old('tender_status', $tender->tender_status) == 'Bid Coated' ? 'selected' : '' }}>Bid Coated</option>
                         </select>
                     </div>
                     <div>
                         <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Bid Result</label>
                         <select name="bid_result" id="bid_result" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;" disabled>
                             <option value="">Select</option>
-                            <option value="Bid Awarded" {{ old('bid_result') == 'Bid Awarded' ? 'selected' : '' }}>Bid Awarded</option>
-                            <option value="Bid not Awarded" {{ old('bid_result') == 'Bid not Awarded' ? 'selected' : '' }}>Bid not Awarded</option>
+                            <option value="Bid Awarded" {{ old('bid_result', $tender->bid_result) == 'Bid Awarded' ? 'selected' : '' }}>Bid Awarded</option>
+                            <option value="Bid not Awarded" {{ old('bid_result', $tender->bid_result) == 'Bid not Awarded' ? 'selected' : '' }}>Bid not Awarded</option>
                         </select>
                     </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Financial Tabulation</label>
+                        <input type="file" name="financial_tabulation_attachment" accept=".pdf,.doc,.docx"
+                               style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
+                        @if($tender->financial_tabulation_attachment)
+                            <div style="margin-top: 5px;">
+                                <a href="{{ asset('storage/' . $tender->financial_tabulation_attachment) }}" target="_blank" style="color: #667eea; font-size: 12px;">
+                                    <i class="fas fa-file-download"></i> View current file
+                                </a>
+                            </div>
+                        @endif
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Technical Specification</label>
+                        <input type="file" name="technical_spec_attachment" accept=".pdf,.doc,.docx"
+                               style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
+                        @if($tender->technical_spec_attachment)
+                            <div style="margin-top: 5px;">
+                                <a href="{{ asset('storage/' . $tender->technical_spec_attachment) }}" target="_blank" style="color: #667eea; font-size: 12px;">
+                                    <i class="fas fa-file-download"></i> View current file
+                                </a>
+                            </div>
+                        @endif
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Rank</label>
+                        <input type="text" name="technical_spec_rank" value="{{ old('technical_spec_rank', $tender->technical_spec_rank ?? '') }}"
+                               style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
+                    </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Bid Closing Information Section -->
+        <div style="background: white; border: 1px solid #dee2e6; border-radius: 5px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+            <div style="background: #f8f9fa; padding: 15px 20px; border-bottom: 1px solid #dee2e6; border-radius: 5px 5px 0 0; display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0; color: #667eea; font-size: 18px; font-weight: 600;">Bid Closing Information</h3>
+                <button type="button" onclick="addFinancialTabulationRow()" style="padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 5px; font-size: 14px; cursor: pointer; font-weight: 500;">
+                    <i class="fas fa-plus"></i> Add
+                </button>
+            </div>
+            <div style="padding: 20px;">
                 <div style="overflow-x: auto;">
                     <table style="width: 100%; border-collapse: collapse;">
                         <thead>
@@ -310,7 +351,23 @@
                             </tr>
                         </thead>
                         <tbody id="financialTabulationRows">
-                            <!-- Rows will be added here dynamically -->
+                            @php $ftIndex = 0; @endphp
+                            @foreach($tender->financialTabulations as $tab)
+                                @php $ftIndex++; @endphp
+                                <tr id="financial_tab_row_{{ $ftIndex }}" style="border-bottom: 1px solid #dee2e6;">
+                                    <td style="padding: 10px;">
+                                        <input type="text" name="financial_tabulations[{{ $ftIndex }}][pl_number]" value="{{ $tab->pl_number }}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
+                                    </td>
+                                    <td style="padding: 10px;">
+                                        <input type="date" name="financial_tabulations[{{ $ftIndex }}][bid_closed_date]" value="{{ optional($tab->bid_closed_date)->format('Y-m-d') }}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
+                                    </td>
+                                    <td style="padding: 10px; text-align: center;">
+                                        <button type="button" onclick="removeFinancialTabulationRow({{ $ftIndex }})" style="padding: 6px 12px; background: #dc3545; color: white; border: none; border-radius: 5px; font-size: 12px; cursor: pointer;">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            @endforeach
                         </tbody>
                     </table>
                 </div>
@@ -329,7 +386,39 @@
                     </button>
                 </div>
                 <div id="remarkRows">
-                    <!-- Rows will be added here dynamically -->
+                    @php $remarkIndex = 0; @endphp
+                    @foreach($tender->remarks as $remark)
+                        @php $remarkIndex++; @endphp
+                        <div id="remark_row_{{ $remarkIndex }}" style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 15px; border: 1px solid #dee2e6;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                <h4 style="margin: 0; color: #333;">Remark #{{ $remarkIndex }}</h4>
+                                <button type="button" onclick="removeRemarkRow({{ $remarkIndex }})" style="padding: 6px 12px; background: #dc3545; color: white; border: none; border-radius: 5px; font-size: 12px; cursor: pointer;">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 15px; margin-bottom: 15px;">
+                                <div>
+                                    <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Date</label>
+                                    <input type="date" name="remarks[{{ $remarkIndex }}][date]" value="{{ optional($remark->date)->format('Y-m-d') }}" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Corrigendum File</label>
+                                    <input type="file" name="remarks[{{ $remarkIndex }}][corrigendum_file]" accept=".pdf,.doc,.docx" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
+                                    @if($remark->corrigendum_file)
+                                        <div style="margin-top: 5px;">
+                                            <a href="{{ asset('storage/' . $remark->corrigendum_file) }}" target="_blank" style="color: #667eea; font-size: 12px;">
+                                                <i class="fas fa-file-download"></i> View current file
+                                            </a>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                            <div>
+                                <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Remarks</label>
+                                <textarea name="remarks[{{ $remarkIndex }}][remarks]" rows="3" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">{{ $remark->remarks }}</textarea>
+                            </div>
+                        </div>
+                    @endforeach
                 </div>
             </div>
         </div>
@@ -408,8 +497,8 @@
 @push('scripts')
 <script>
     let itemRowCount = 0;
-    let financialTabulationRowCount = 0;
-    let remarkRowCount = 0;
+    let financialTabulationRowCount = {{ $tender->financialTabulations->count() ?? 0 }};
+    let remarkRowCount = {{ $tender->remarks->count() ?? 0 }};
     const units = @json($units);
 
     function addItemRow() {
@@ -459,9 +548,6 @@
                 <td style="padding: 10px; text-align: center;">
                     <button type="button" onclick="removeItemRow(${itemRowCount})" style="padding: 6px 12px; background: #dc3545; color: white; border: none; border-radius: 5px; font-size: 12px; cursor: pointer;">
                         <i class="fas fa-trash"></i>
-                    </button>
-                    <button type="button" onclick="openTechnicalSpecModal(${itemRowCount})" style="padding: 6px 12px; background: #667eea; color: white; border: none; border-radius: 5px; font-size: 12px; cursor: pointer; margin-top: 5px;">
-                        <i class="fas fa-cog"></i> Specs
                     </button>
                 </td>
             </tr>
@@ -531,16 +617,56 @@
     }
 
     function fetchCustomerDetails(id) {
-        if(!id) return;
+        const contactPerson = document.getElementById('contact_person');
+        const addr1 = document.getElementById('billing_address_line_1');
+        const addr2 = document.getElementById('billing_address_line_2');
+        const city = document.getElementById('billing_city');
+        const state = document.getElementById('billing_state');
+        const country = document.getElementById('billing_country');
+        const pincode = document.getElementById('billing_pincode');
+
+        if (!id) {
+            // Clear and make fields editable if no company selected
+            [contactPerson, addr1, addr2, city, state, country, pincode].forEach(input => {
+                if (input) {
+                    input.value = '';
+                    input.readOnly = false;
+                }
+            });
+            return;
+        }
+
         fetch(`{{ url('tenders/customer') }}/${id}`)
             .then(response => response.json())
             .then(data => {
-                document.getElementById('billing_address_line_1').value = data.billing_address_line_1 || '';
-                document.getElementById('billing_address_line_2').value = data.billing_address_line_2 || '';
-                document.getElementById('billing_city').value = data.billing_city || '';
-                document.getElementById('billing_state').value = data.billing_state || '';
-                document.getElementById('billing_pincode').value = data.billing_pincode || '';
-                document.getElementById('contact_person').value = data.contact_name || '';
+                if (contactPerson) {
+                    contactPerson.value = data.contact_name || '';
+                    contactPerson.readOnly = true;
+                }
+                if (addr1) {
+                    addr1.value = data.billing_address_line_1 || '';
+                    addr1.readOnly = true;
+                }
+                if (addr2) {
+                    addr2.value = data.billing_address_line_2 || '';
+                    addr2.readOnly = true;
+                }
+                if (city) {
+                    city.value = data.billing_city || '';
+                    city.readOnly = true;
+                }
+                if (state) {
+                    state.value = data.billing_state || '';
+                    state.readOnly = true;
+                }
+                if (country) {
+                    country.value = data.billing_country || '';
+                    country.readOnly = true;
+                }
+                if (pincode) {
+                    pincode.value = data.billing_pincode || '';
+                    pincode.readOnly = true;
+                }
             });
     }
 
@@ -595,28 +721,58 @@
 
     function saveCustomer(event) {
         event.preventDefault();
-        const formData = new FormData(event.target);
-        // Submit form normally - will redirect, then user can refresh
-        event.target.submit();
+        const form = event.target;
+        const formData = new FormData(form);
+
+        fetch(form.action, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json',
+            },
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(data => {
+                    throw data;
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data && data.success && data.customer) {
+                const companySelect = document.getElementById('company_id');
+                if (companySelect) {
+                    const option = document.createElement('option');
+                    option.value = data.customer.id;
+                    option.textContent = data.customer.company_name;
+                    option.selected = true;
+                    companySelect.appendChild(option);
+
+                    // Trigger fetch of billing/contact details
+                    fetchCustomerDetails(data.customer.id);
+                }
+                closeAddCustomerModal();
+            } else {
+                alert('Customer saved, but response was unexpected.');
+            }
+        })
+        .catch(error => {
+            let message = 'Failed to save customer.';
+            if (error && error.errors) {
+                const firstKey = Object.keys(error.errors)[0];
+                if (firstKey) {
+                    message = error.errors[firstKey][0] || message;
+                }
+            }
+            alert(message);
+        });
     }
 
     function showDescriptionModal(rowId) {
         const description = document.querySelector(`textarea[name="items[${rowId}][description]"]`).value;
         alert('Description:\n\n' + description);
-    }
-
-    function openTechnicalSpecModal(rowId) {
-        // This would open a modal to add technical specifications
-        // For now, we'll use a simple prompt
-        const spec = prompt('Enter Technical Specification:');
-        const rank = prompt('Enter Rank:');
-        if (spec) {
-            // Store in hidden fields or handle via AJAX
-            // For now, we'll add it to a hidden div
-            const hiddenDiv = document.createElement('div');
-            hiddenDiv.innerHTML = `<input type="hidden" name="items[${rowId}][technical_specifications][0][specification]" value="${spec}"><input type="hidden" name="items[${rowId}][technical_specifications][0][rank]" value="${rank || ''}">`;
-            document.getElementById(`item_row_${rowId}`).appendChild(hiddenDiv);
-        }
     }
 
     // Load existing items
@@ -669,9 +825,6 @@
                         <button type="button" onclick="removeItemRow(${itemRowCount})" style="padding: 6px 12px; background: #dc3545; color: white; border: none; border-radius: 5px; font-size: 12px; cursor: pointer;">
                             <i class="fas fa-trash"></i>
                         </button>
-                        <button type="button" onclick="openTechnicalSpecModal(${itemRowCount})" style="padding: 6px 12px; background: #667eea; color: white; border: none; border-radius: 5px; font-size: 12px; cursor: pointer; margin-top: 5px;">
-                            <i class="fas fa-cog"></i> Specs
-                        </button>
                     </td>
                 </tr>
             `;
@@ -681,6 +834,11 @@
         // Add initial item row
         addItemRow();
     @endif
+
+    // Ensure Bid Result enabled/disabled matches current status on load
+    document.addEventListener('DOMContentLoaded', function () {
+        toggleBidResult();
+    });
 </script>
 @endpush
 @endsection

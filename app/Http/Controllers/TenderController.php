@@ -10,6 +10,7 @@ use App\Models\TenderFinancialTabulation;
 use App\Models\TenderRemark;
 use App\Models\Customer;
 use App\Models\Unit;
+use App\Models\ProductionDepartment;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
@@ -51,6 +52,11 @@ class TenderController extends Controller
         
         // Get units (shared across branches)
         $units = Unit::all();
+
+        // Get production departments (by active branch)
+        $prodDeptQuery = ProductionDepartment::query();
+        $prodDeptQuery = $this->applyBranchFilter($prodDeptQuery, ProductionDepartment::class);
+        $productionDepartments = $prodDeptQuery->get();
         
         // Generate Tender Number
         $lastTender = Tender::latest()->first();
@@ -60,7 +66,7 @@ class TenderController extends Controller
         // Get logged in user
         $user = auth()->user();
 
-        return view('tenders.create', compact('customers', 'units', 'tenderNo', 'user'));
+        return view('tenders.create', compact('customers', 'units', 'tenderNo', 'user', 'productionDepartments'));
     }
 
     /**
@@ -78,7 +84,8 @@ class TenderController extends Controller
         $request->validate([
             'tender_no' => 'required|unique:tenders,tender_no',
             'customer_tender_no' => 'nullable|string|max:255',
-            'production_dept' => 'nullable|in:Door Section,Fiber tables&windows,Railways',
+            // Must match an existing production department name
+            'production_dept' => 'nullable|exists:production_departments,name',
             'company_id' => 'nullable|exists:customers,id',
             'contact_person' => 'nullable|string|max:255',
             'billing_address_line_1' => 'nullable|string|max:255',
@@ -102,6 +109,9 @@ class TenderController extends Controller
             'pre_bid_conference_date' => 'nullable|date',
             'inspection_agency' => 'nullable|string|max:255',
             'tender_document_attachment' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
+            'financial_tabulation_attachment' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
+            'technical_spec_attachment' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
+            'technical_spec_rank' => 'nullable|string|max:255',
             'tender_status' => 'nullable|in:Bid not coated,Bid Coated',
             'bid_result' => 'nullable|in:Bid Awarded,Bid not Awarded',
             'items' => 'required|array|min:1',
@@ -114,10 +124,19 @@ class TenderController extends Controller
         try {
             DB::beginTransaction();
 
-            // Handle file upload
+            // Handle file uploads
             $tenderDocumentPath = null;
+            $financialTabulationPath = null;
+            $technicalSpecPath = null;
+
             if ($request->hasFile('tender_document_attachment')) {
                 $tenderDocumentPath = $request->file('tender_document_attachment')->store('tender_documents', 'public');
+            }
+            if ($request->hasFile('financial_tabulation_attachment')) {
+                $financialTabulationPath = $request->file('financial_tabulation_attachment')->store('financial_tabulations', 'public');
+            }
+            if ($request->hasFile('technical_spec_attachment')) {
+                $technicalSpecPath = $request->file('technical_spec_attachment')->store('technical_specs', 'public');
             }
 
             $tender = Tender::create([
@@ -148,6 +167,9 @@ class TenderController extends Controller
                 'pre_bid_conference_date' => $request->pre_bid_conference_date,
                 'inspection_agency' => $request->inspection_agency,
                 'tender_document_attachment' => $tenderDocumentPath,
+                'financial_tabulation_attachment' => $financialTabulationPath,
+                'technical_spec_attachment' => $technicalSpecPath,
+                'technical_spec_rank' => $request->technical_spec_rank,
                 'tender_status' => $request->tender_status ?? 'Bid not coated',
                 'bid_result' => $request->bid_result,
                 'branch_id' => $this->getActiveBranchId(),
@@ -267,11 +289,16 @@ class TenderController extends Controller
         
         // Get units
         $units = Unit::all();
+
+        // Get production departments (by active branch)
+        $prodDeptQuery = ProductionDepartment::query();
+        $prodDeptQuery = $this->applyBranchFilter($prodDeptQuery, ProductionDepartment::class);
+        $productionDepartments = $prodDeptQuery->get();
         
         // Get logged in user
         $user = auth()->user();
         
-        return view('tenders.edit', compact('tender', 'customers', 'units', 'user'));
+        return view('tenders.edit', compact('tender', 'customers', 'units', 'user', 'productionDepartments'));
     }
 
     /**
@@ -293,7 +320,8 @@ class TenderController extends Controller
         $request->validate([
             'tender_no' => 'required|unique:tenders,tender_no,' . $id,
             'customer_tender_no' => 'nullable|string|max:255',
-            'production_dept' => 'nullable|in:Door Section,Fiber tables&windows,Railways',
+            // Must match an existing production department name
+            'production_dept' => 'nullable|exists:production_departments,name',
             'company_id' => 'nullable|exists:customers,id',
             'contact_person' => 'nullable|string|max:255',
             'billing_address_line_1' => 'nullable|string|max:255',
@@ -317,6 +345,9 @@ class TenderController extends Controller
             'pre_bid_conference_date' => 'nullable|date',
             'inspection_agency' => 'nullable|string|max:255',
             'tender_document_attachment' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
+            'financial_tabulation_attachment' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
+            'technical_spec_attachment' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
+            'technical_spec_rank' => 'nullable|string|max:255',
             'tender_status' => 'nullable|in:Bid not coated,Bid Coated',
             'bid_result' => 'nullable|in:Bid Awarded,Bid not Awarded',
             'items' => 'required|array|min:1',
@@ -329,14 +360,28 @@ class TenderController extends Controller
         try {
             DB::beginTransaction();
 
-            // Handle file upload
+            // Handle file uploads
             $tenderDocumentPath = $tender->tender_document_attachment;
+            $financialTabulationPath = $tender->financial_tabulation_attachment ?? null;
+            $technicalSpecPath = $tender->technical_spec_attachment ?? null;
+
             if ($request->hasFile('tender_document_attachment')) {
-                // Delete old file if exists
                 if ($tenderDocumentPath) {
                     Storage::disk('public')->delete($tenderDocumentPath);
                 }
                 $tenderDocumentPath = $request->file('tender_document_attachment')->store('tender_documents', 'public');
+            }
+            if ($request->hasFile('financial_tabulation_attachment')) {
+                if ($financialTabulationPath) {
+                    Storage::disk('public')->delete($financialTabulationPath);
+                }
+                $financialTabulationPath = $request->file('financial_tabulation_attachment')->store('financial_tabulations', 'public');
+            }
+            if ($request->hasFile('technical_spec_attachment')) {
+                if ($technicalSpecPath) {
+                    Storage::disk('public')->delete($technicalSpecPath);
+                }
+                $technicalSpecPath = $request->file('technical_spec_attachment')->store('technical_specs', 'public');
             }
 
             $tender->update([
@@ -366,6 +411,9 @@ class TenderController extends Controller
                 'pre_bid_conference_date' => $request->pre_bid_conference_date,
                 'inspection_agency' => $request->inspection_agency,
                 'tender_document_attachment' => $tenderDocumentPath,
+                'financial_tabulation_attachment' => $financialTabulationPath,
+                'technical_spec_attachment' => $technicalSpecPath,
+                'technical_spec_rank' => $request->technical_spec_rank,
                 'tender_status' => $request->tender_status ?? 'Bid not coated',
                 'bid_result' => $request->bid_result,
             ]);
@@ -444,7 +492,8 @@ class TenderController extends Controller
             }
 
             DB::commit();
-            return redirect()->route('tenders.show', $tender->id)->with('success', 'Tender updated successfully.');
+            // After editing, go back to the Tender list view
+            return redirect()->route('tenders.index')->with('success', 'Tender updated successfully.');
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Error updating tender: ' . $e->getMessage())->withInput();
@@ -468,9 +517,15 @@ class TenderController extends Controller
         $tender = $query->findOrFail($id);
         
         try {
-            // Delete file if exists
+            // Delete files if exist
             if ($tender->tender_document_attachment) {
                 Storage::disk('public')->delete($tender->tender_document_attachment);
+            }
+            if ($tender->financial_tabulation_attachment) {
+                Storage::disk('public')->delete($tender->financial_tabulation_attachment);
+            }
+            if ($tender->technical_spec_attachment) {
+                Storage::disk('public')->delete($tender->technical_spec_attachment);
             }
             
             // Delete related files in remarks
@@ -501,6 +556,7 @@ class TenderController extends Controller
             'billing_address_line_2' => $customer->billing_address_line_2,
             'billing_city' => $customer->billing_city,
             'billing_state' => $customer->billing_state,
+            'billing_country' => $customer->billing_country ?? null,
             'billing_pincode' => $customer->billing_pincode,
             'gst_no' => $customer->gst_no,
             'contact_name' => $customer->contact_name,

@@ -115,4 +115,10 @@ Route::middleware(['auth'])->group(function () {
     // Tender Routes
     Route::resource('tenders', App\Http\Controllers\TenderController::class);
     Route::get('tenders/customer/{id}', [App\Http\Controllers\TenderController::class, 'getCustomerDetails'])->name('tenders.customer');
+
+    // Customer Orders (Tender Module)
+    Route::resource('customer-orders', App\Http\Controllers\CustomerOrderController::class);
+
+    // Tender Evaluation Routes
+    Route::resource('tender-evaluations', App\Http\Controllers\TenderEvaluationController::class);
 });
