@@ -318,27 +318,33 @@
                     <span>Account Settings</span>
                 </a>
                 
-                {{-- Super Admin Menu --}}
+                {{-- System Admin Menu (Super Admin only) --}}
                 @if(auth()->user()->isSuperAdmin())
-                    <a href="{{ route('branches.index') }}" class="menu-item" title="Branches">
-                        <i class="fas fa-sitemap"></i>
-                        <span>Branches</span>
-                    </a>
-                    
-                    <a href="{{ route('users.index') }}" class="menu-item" title="Users">
-                        <i class="fas fa-users"></i>
-                        <span>Users</span>
-                    </a>
-                    
-                    <a href="{{ route('roles.index') }}" class="menu-item" title="Roles">
-                        <i class="fas fa-user-shield"></i>
-                        <span>Roles</span>
-                    </a>
-                    
-                    <a href="{{ route('role-permissions.select') }}" class="menu-item" title="Role Permissions">
-                        <i class="fas fa-key"></i>
-                        <span>Role Permissions</span>
-                    </a>
+                    <div class="menu-item-header" onclick="toggleSystemAdminMenu()" id="systemAdminHeader" style="margin-top: 10px;">
+                        <span>System Admin</span>
+                        <i class="fas fa-chevron-down arrow"></i>
+                    </div>
+                    <div class="menu-sub-items" id="systemAdminMenu">
+                        <a href="{{ route('branches.index') }}" class="menu-item" title="Branches">
+                            <i class="fas fa-sitemap"></i>
+                            <span>Branches</span>
+                        </a>
+                        
+                        <a href="{{ route('users.index') }}" class="menu-item" title="Users">
+                            <i class="fas fa-users"></i>
+                            <span>Users</span>
+                        </a>
+                        
+                        <a href="{{ route('roles.index') }}" class="menu-item" title="Roles">
+                            <i class="fas fa-user-shield"></i>
+                            <span>Roles</span>
+                        </a>
+                        
+                        <a href="{{ route('role-permissions.select') }}" class="menu-item" title="Role Permissions">
+                            <i class="fas fa-key"></i>
+                            <span>Role Permissions</span>
+                        </a>
+                    </div>
                 @endif
                 
                 {{-- Branch User Menu --}}
@@ -611,6 +617,20 @@
             }
         }
 
+        // Toggle System Admin menu
+        function toggleSystemAdminMenu() {
+            const systemAdminMenu = document.getElementById('systemAdminMenu');
+            const systemAdminHeader = document.getElementById('systemAdminHeader');
+            
+            if (systemAdminMenu && systemAdminHeader) {
+                systemAdminMenu.classList.toggle('collapsed');
+                systemAdminHeader.classList.toggle('collapsed');
+                
+                // Save state to localStorage
+                localStorage.setItem('systemAdminMenuCollapsed', systemAdminMenu.classList.contains('collapsed'));
+            }
+        }
+
         // Initialize all collapsible menus state on page load
         document.addEventListener('DOMContentLoaded', function() {
             // Masters menu
@@ -643,6 +663,17 @@
                 if (settingsMenu && settingsHeader) {
                     settingsMenu.classList.add('collapsed');
                     settingsHeader.classList.add('collapsed');
+                }
+            }
+
+            // System Admin menu
+            const systemAdminSavedState = localStorage.getItem('systemAdminMenuCollapsed');
+            if (systemAdminSavedState === 'true') {
+                const systemAdminMenu = document.getElementById('systemAdminMenu');
+                const systemAdminHeader = document.getElementById('systemAdminHeader');
+                if (systemAdminMenu && systemAdminHeader) {
+                    systemAdminMenu.classList.add('collapsed');
+                    systemAdminHeader.classList.add('collapsed');
                 }
             }
         });

@@ -230,7 +230,7 @@ class User extends Authenticatable
                 }
 
                 if ($hasPermission) {
-                    return true;
+                return true;
                 }
             }
         }
