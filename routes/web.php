@@ -99,6 +99,7 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('suppliers', App\Http\Controllers\SupplierController::class);
     Route::resource('supplier-evaluations', App\Http\Controllers\SupplierEvaluationController::class);
     Route::resource('subcontractor-evaluations', App\Http\Controllers\SubcontractorEvaluationController::class);
+    Route::resource('purchase-indents', App\Http\Controllers\PurchaseIndentController::class);
 
     // Quotation Routes
     Route::resource('quotations', App\Http\Controllers\QuotationController::class);

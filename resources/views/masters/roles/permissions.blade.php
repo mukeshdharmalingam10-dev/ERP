@@ -190,8 +190,9 @@
                 'Tender Sales'      => 2,
                 'Transactions'      => 3,
                 'Sales'             => 4,
-                'Masters'           => 5,
-                'Settings'          => 6,
+                'Purchase'          => 5,
+                'Masters'           => 6,
+                'Settings'          => 7,
                 'Other Forms'       => 999,
             ];
 

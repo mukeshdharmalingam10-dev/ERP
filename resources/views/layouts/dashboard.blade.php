@@ -412,6 +412,18 @@
                     </div>
                 @endif
 
+                {{-- Purchase Module (placeholder for future purchase forms) --}}
+                <div class="menu-item-header" onclick="togglePurchaseMenu()" id="purchaseHeader" style="margin-top: 10px;">
+                    <span>Purchase</span>
+                    <i class="fas fa-chevron-down arrow"></i>
+                </div>
+                <div class="menu-sub-items" id="purchaseMenu">
+                    <a href="{{ route('purchase-indents.index') }}" class="menu-item" title="Purchase Indents">
+                        <i class="fas fa-file-alt"></i>
+                        <span>Purchase Indents</span>
+                    </a>
+                </div>
+
                 <div class="menu-item-header" onclick="toggleMastersMenu()" id="mastersHeader">
                     <span>Masters</span>
                     <i class="fas fa-chevron-down arrow"></i>
@@ -665,6 +677,20 @@
             }
         }
 
+        // Toggle Purchase menu
+        function togglePurchaseMenu() {
+            const purchaseMenu = document.getElementById('purchaseMenu');
+            const purchaseHeader = document.getElementById('purchaseHeader');
+            
+            if (purchaseMenu && purchaseHeader) {
+                purchaseMenu.classList.toggle('collapsed');
+                purchaseHeader.classList.toggle('collapsed');
+                
+                // Save state to localStorage
+                localStorage.setItem('purchaseMenuCollapsed', purchaseMenu.classList.contains('collapsed'));
+            }
+        }
+
         // Toggle Settings menu
         function toggleSettingsMenu() {
             const settingsMenu = document.getElementById('settingsMenu');
@@ -725,6 +751,17 @@
                 if (supplierMenu && supplierHeader) {
                     supplierMenu.classList.add('collapsed');
                     supplierHeader.classList.add('collapsed');
+                }
+            }
+
+            // Purchase menu
+            const purchaseSavedState = localStorage.getItem('purchaseMenuCollapsed');
+            if (purchaseSavedState === 'true') {
+                const purchaseMenu = document.getElementById('purchaseMenu');
+                const purchaseHeader = document.getElementById('purchaseHeader');
+                if (purchaseMenu && purchaseHeader) {
+                    purchaseMenu.classList.add('collapsed');
+                    purchaseHeader.classList.add('collapsed');
                 }
             }
 
