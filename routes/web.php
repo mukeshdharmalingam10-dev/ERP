@@ -98,6 +98,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('billing-addresses/bulk-delete', [App\Http\Controllers\BillingAddressController::class, 'bulkDelete'])->name('billing-addresses.bulk-delete');
     Route::resource('suppliers', App\Http\Controllers\SupplierController::class);
     Route::resource('supplier-evaluations', App\Http\Controllers\SupplierEvaluationController::class);
+    Route::resource('subcontractor-evaluations', App\Http\Controllers\SubcontractorEvaluationController::class);
 
     // Quotation Routes
     Route::resource('quotations', App\Http\Controllers\QuotationController::class);

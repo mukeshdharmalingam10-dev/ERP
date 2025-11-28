@@ -405,6 +405,10 @@
                             <i class="fas fa-clipboard-check"></i>
                             <span>Supplier Evaluation</span>
                         </a>
+                        <a href="{{ route('subcontractor-evaluations.index') }}" class="menu-item" title="Subcontractor Evaluation">
+                            <i class="fas fa-clipboard-list"></i>
+                            <span>Subcontractor Evaluation</span>
+                        </a>
                     </div>
                 @endif
 

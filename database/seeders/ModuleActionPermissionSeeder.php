@@ -44,6 +44,7 @@ class ModuleActionPermissionSeeder extends Seeder
             'tenders',
             'customer-complaints',
             'discounts',
+            'subcontractor-evaluations',
         ];
 
         foreach ($resources as $resource) {
