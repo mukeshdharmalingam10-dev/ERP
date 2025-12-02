@@ -23,7 +23,7 @@
                 <thead>
                     <tr style="background: #f8f9fa; border-bottom: 2px solid #dee2e6;">
                         <th style="padding: 12px; text-align: center; color: #333; font-weight: 600; width: 50px;">S.No</th>
-                        <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Order No</th>
+                        <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Customer Order No</th>
                         <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Order Date</th>
                         <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Tender No</th>
                         <th style="padding: 12px; text-align: center; color: #333; font-weight: 600;">Actions</th>

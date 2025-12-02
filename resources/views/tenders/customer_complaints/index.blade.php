@@ -26,6 +26,7 @@
                 <table style="width:100%; border-collapse:collapse;">
                     <thead>
                         <tr style="background:#f8f9fa; border-bottom:2px solid #dee2e6;">
+                            <th style="padding:12px; text-align:left; color:#333; font-weight:600;">S.No</th>
                             <th style="padding:12px; text-align:left; color:#333; font-weight:600;">ID</th>
                             <th style="padding:12px; text-align:left; color:#333; font-weight:600;">Date</th>
                             <th style="padding:12px; text-align:left; color:#333; font-weight:600;">Customer</th>
@@ -36,8 +37,9 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($complaints as $complaint)
+                        @foreach($complaints as $index => $complaint)
                             <tr style="border-bottom:1px solid #dee2e6;">
+                                <td style="padding:10px 12px; color:#333;">{{ $complaints->firstItem() + $index }}</td>
                                 <td style="padding:10px 12px; color:#333;">{{ $complaint->id }}</td>
                                 <td style="padding:10px 12px; color:#333;">{{ optional($complaint->complaint_date)->format('d-m-Y') }}</td>
                                 <td style="padding:10px 12px; color:#333;">{{ $complaint->customer_name }}</td>
@@ -45,22 +47,24 @@
                                 <td style="padding:10px 12px; color:#333;">{{ $complaint->complaint_type }}</td>
                                 <td style="padding:10px 12px; color:#333;">{{ $complaint->status }}</td>
                                 <td style="padding:10px 12px; text-align:center;">
-                                    <a href="{{ route('customer-complaints.show', $complaint->id) }}"
-                                       style="padding:6px 10px; background:#17a2b8; color:white; border-radius:4px; font-size:12px; text-decoration:none; margin-right:4px;">
-                                        View
-                                    </a>
-                                    <a href="{{ route('customer-complaints.edit', $complaint->id) }}"
-                                       style="padding:6px 10px; background:#ffc107; color:#212529; border-radius:4px; font-size:12px; text-decoration:none; margin-right:4px;">
-                                        Edit
-                                    </a>
-                                    <form action="{{ route('customer-complaints.destroy', $complaint->id) }}" method="POST" style="display:inline-block;" onsubmit="return confirm('Are you sure you want to delete this complaint?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit"
-                                                style="padding:6px 10px; background:#dc3545; color:white; border:none; border-radius:4px; font-size:12px; cursor:pointer;">
-                                            Delete
-                                        </button>
-                                    </form>
+                                    <div style="display:inline-flex; gap:6px; flex-wrap:wrap; justify-content:center;">
+                                        <a href="{{ route('customer-complaints.show', $complaint->id) }}"
+                                           style="padding:6px 10px; background:#17a2b8; color:white; border-radius:4px; font-size:12px; text-decoration:none;">
+                                            View
+                                        </a>
+                                        <a href="{{ route('customer-complaints.edit', $complaint->id) }}"
+                                           style="padding:6px 10px; background:#ffc107; color:#212529; border-radius:4px; font-size:12px; text-decoration:none;">
+                                            Edit
+                                        </a>
+                                        <form action="{{ route('customer-complaints.destroy', $complaint->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this complaint?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit"
+                                                    style="padding:6px 10px; background:#dc3545; color:white; border:none; border-radius:4px; font-size:12px; cursor:pointer;">
+                                                Delete
+                                            </button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                         @endforeach

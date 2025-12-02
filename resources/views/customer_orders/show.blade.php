@@ -18,7 +18,7 @@
         </div>
         <div style="padding: 20px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
             <div>
-                <div style="color: #777; font-size: 13px; margin-bottom: 4px;">Order No</div>
+                <div style="color: #777; font-size: 13px; margin-bottom: 4px;">Customer Order No</div>
                 <div style="color: #333; font-weight: 600;">{{ $order->order_no }}</div>
             </div>
             <div>

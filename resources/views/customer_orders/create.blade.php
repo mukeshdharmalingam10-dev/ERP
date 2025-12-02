@@ -32,7 +32,7 @@
             </div>
             <div style="padding: 20px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
                 <div>
-                    <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Order No</label>
+                    <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Customer Order No</label>
                     <input type="text" name="order_no" value="{{ old('order_no', $orderNo) }}" readonly
                            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; background: #f8f9fa;">
                 </div>
@@ -73,12 +73,11 @@
                             <th style="padding: 12px; text-align: right; color: #333; font-weight: 600;">Price per Qty <span style="color:red;">*</span></th>
                             <th style="padding: 12px; text-align: right; color: #333; font-weight: 600;">Installation</th>
                             <th style="padding: 12px; text-align: right; color: #333; font-weight: 600;">Amount</th>
-                            <th style="padding: 12px; text-align: center; color: #333; font-weight: 600;">Select</th>
                         </tr>
                     </thead>
                     <tbody id="itemsBody">
                         <tr>
-                            <td colspan="9" style="padding: 12px; text-align: center; color: #777;">
+                            <td colspan="8" style="padding: 12px; text-align: center; color: #777;">
                                 Select a Tender to load items.
                             </td>
                         </tr>
@@ -320,6 +319,7 @@
                 <td style="padding: 10px;">
                     <input type="text" name="items[${index}][pl_code]" value="${item.pl_code || ''}" readonly
                            style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 13px; background:#f8f9fa;">
+                    <input type="hidden" name="items[${index}][tender_item_id]" value="${item.id}">
                 </td>
                 <td style="padding: 10px; text-align: right;">
                     <input type="number" name="items[${index}][ordered_qty]" value="${item.qty}" step="0.01" min="0"
@@ -340,10 +340,6 @@
                 <td style="padding: 10px; text-align: right; color:#333;">
                     <span id="item_amount_display_${index}">0.00</span>
                     <input type="hidden" name="items[${index}][line_amount]" id="item_amount_${index}" value="0">
-                </td>
-                <td style="padding: 10px; text-align: center;">
-                    <input type="hidden" name="items[${index}][tender_item_id]" value="${item.id}">
-                    <input type="radio" name="selected_item" value="${index}" onclick="onItemSelected(${index})">
                 </td>
             `;
             tbody.appendChild(row);
