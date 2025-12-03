@@ -83,6 +83,7 @@ class QuotationController extends Controller
             'overall_discount_percent' => 'nullable|numeric|min:0|max:100',
             'products' => 'required|array',
             'products.*.product_id' => 'required|exists:products,id',
+            'products.*.price' => 'required|numeric|min:0',
             'products.*.quantity' => 'required|integer|min:1',
         ], [
             'billing_pincode.regex' => 'The billing pincode must be 6 digits.',
@@ -230,6 +231,7 @@ class QuotationController extends Controller
             'overall_discount_percent' => 'nullable|numeric|min:0|max:100',
             'products' => 'required|array',
             'products.*.product_id' => 'required|exists:products,id',
+            'products.*.price' => 'required|numeric|min:0',
             'products.*.quantity' => 'required|integer|min:1',
         ], [
             'billing_pincode.regex' => 'The billing pincode must be 6 digits.',

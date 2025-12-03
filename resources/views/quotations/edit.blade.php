@@ -281,8 +281,9 @@
                     </select>
                 </td>
                 <td style="padding: 10px;">
-                    <input type="number" name="products[${rowCount}][price]" id="price_${rowCount}" value="${price}" step="0.01" readonly
-                        style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; background: #f8f9fa;">
+                    <input type="number" name="products[${rowCount}][price]" id="price_${rowCount}" value="${price}" step="0.01" min="0" required
+                        oninput="calculateRow(${rowCount})"
+                        style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
                 </td>
                 <td style="padding: 10px;">
                     <input type="number" name="products[${rowCount}][quantity]" id="qty_${rowCount}" value="${qty}" min="1" oninput="calculateRow(${rowCount})" required
@@ -346,7 +347,6 @@
             .then(response => response.json())
             .then(data => {
                 document.getElementById(`unit_${rowId}`).value = data.unit_id;
-                document.getElementById(`price_${rowId}`).value = data.price;
                 // Set default GST % from product GST rate if available
                 const gstPercentField = document.getElementById('gst_percent');
                 if (gstPercentField && gstPercentField.value == 0 && data.gst_rate) {

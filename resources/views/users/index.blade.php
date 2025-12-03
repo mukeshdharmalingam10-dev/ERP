@@ -53,6 +53,7 @@
                         <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Mobile</th>
                         <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Role</th>
                         <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Branches</th>
+                        <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Status</th>
                         <th style="padding: 12px; text-align: center; color: #333; font-weight: 600;">Actions</th>
                     </tr>
                 </thead>
@@ -84,6 +85,21 @@
                                 @else
                                     <span style="color: #999;">No Branches</span>
                                 @endif
+                            </td>
+                            <td style="padding: 12px;">
+                                @php
+                                    $status = $user->status ?? 'inactive';
+                                    $bg = '#6c757d';
+                                    $color = '#fff';
+                                    if ($status === 'active') {
+                                        $bg = '#28a745';
+                                    } elseif ($status === 'locked') {
+                                        $bg = '#e53e3e';
+                                    }
+                                @endphp
+                                <span style="background: {{ $bg }}; color: {{ $color }}; padding: 4px 12px; border-radius: 12px; font-size: 12px; text-transform: capitalize;">
+                                    {{ $status }}
+                                </span>
                             </td>
                             <td style="padding: 12px; text-align: center;">
                                 <div style="display: flex; gap: 8px; justify-content: center;">
