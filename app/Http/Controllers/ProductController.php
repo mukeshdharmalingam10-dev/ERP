@@ -11,11 +11,31 @@ class ProductController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
         $query = \App\Models\Product::with(['unit', 'productCategory']);
         $query = $this->applyBranchFilter($query, \App\Models\Product::class);
-        $products = $query->latest()->paginate(15);
+
+        // Search functionality
+        if ($request->filled('search')) {
+            $search = $request->get('search');
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%")
+                  ->orWhere('code', 'like', "%{$search}%")
+                  ->orWhereHas('productCategory', function($categoryQuery) use ($search) {
+                      $categoryQuery->where('name', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('unit', function($unitQuery) use ($search) {
+                      $unitQuery->where('name', 'like', "%{$search}%")
+                                ->orWhere('symbol', 'like', "%{$search}%");
+                  })
+                  // Search in dates
+                  ->orWhereRaw("DATE_FORMAT(created_at, '%d-%m-%Y') LIKE ?", ["%{$search}%"]);
+            });
+        }
+
+        $products = $query->latest()->paginate(15)->withQueryString();
         return view('masters.products.index', compact('products'));
     }
 
@@ -39,8 +59,6 @@ class ProductController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'unit_id' => 'required|exists:units,id',
-            'price' => 'required|numeric|min:0',
-            'gst_rate' => 'required|numeric|min:0',
             'category' => 'nullable|string',
             'product_category_id' => 'nullable|exists:product_categories,id',
         ]);
@@ -81,8 +99,6 @@ class ProductController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'unit_id' => 'required|exists:units,id',
-            'price' => 'required|numeric|min:0',
-            'gst_rate' => 'required|numeric|min:0',
             'category' => 'nullable|string',
             'product_category_id' => 'nullable|exists:product_categories,id',
         ]);

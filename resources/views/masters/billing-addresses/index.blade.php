@@ -166,26 +166,6 @@
                                 @endif
                             </a>
                         </th>
-                        <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">
-                            <a href="{{ route('billing-addresses.index', array_merge(request()->except(['sort', 'direction']), ['sort' => 'contact_no', 'direction' => request('sort') == 'contact_no' && request('direction') == 'asc' ? 'desc' : 'asc'])) }}" style="text-decoration: none; color: #333;">
-                                Contact No
-                                @if(request('sort') == 'contact_no')
-                                    <i class="fas fa-sort-{{ request('direction') == 'asc' ? 'up' : 'down' }}"></i>
-                                @else
-                                    <i class="fas fa-sort" style="color: #ccc;"></i>
-                                @endif
-                            </a>
-                        </th>
-                        <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">
-                            <a href="{{ route('billing-addresses.index', array_merge(request()->except(['sort', 'direction']), ['sort' => 'gst_no', 'direction' => request('sort') == 'gst_no' && request('direction') == 'asc' ? 'desc' : 'asc'])) }}" style="text-decoration: none; color: #333;">
-                                GST No
-                                @if(request('sort') == 'gst_no')
-                                    <i class="fas fa-sort-{{ request('direction') == 'asc' ? 'up' : 'down' }}"></i>
-                                @else
-                                    <i class="fas fa-sort" style="color: #ccc;"></i>
-                                @endif
-                            </a>
-                        </th>
                         <th style="padding: 12px; text-align: center; color: #333; font-weight: 600;">Actions</th>
                     </tr>
                 </thead>
@@ -202,8 +182,6 @@
                             <td style="padding: 12px; color: #666;">{{ $billingAddress->state }}</td>
                             <td style="padding: 12px; color: #666;">{{ $billingAddress->pincode }}</td>
                             <td style="padding: 12px; color: #666;">{{ $billingAddress->email }}</td>
-                            <td style="padding: 12px; color: #666;">{{ $billingAddress->contact_no }}</td>
-                            <td style="padding: 12px; color: #666;">{{ $billingAddress->gst_no }}</td>
                             <td style="padding: 12px; text-align: center;">
                                 <div style="display: flex; gap: 8px; justify-content: center;">
                                     <a href="{{ route('billing-addresses.show', $billingAddress->id) }}" style="padding: 6px 12px; background: #17a2b8; color: white; text-decoration: none; border-radius: 4px; font-size: 12px;" title="View">

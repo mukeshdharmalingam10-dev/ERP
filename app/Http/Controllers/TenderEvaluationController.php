@@ -13,7 +13,7 @@ class TenderEvaluationController extends Controller
     /**
      * Display a listing of Tender Evaluations.
      */
-    public function index()
+    public function index(Request $request)
     {
         $user = auth()->user();
 
@@ -26,10 +26,28 @@ class TenderEvaluationController extends Controller
         $tenderQuery = $this->applyBranchFilter($tenderQuery, Tender::class);
         $tenderIds = $tenderQuery->pluck('id');
 
-        $evaluations = TenderEvaluation::with('tender')
-            ->whereIn('tender_id', $tenderIds)
-            ->latest()
-            ->paginate(15);
+        $query = TenderEvaluation::with('tender')
+            ->whereIn('tender_id', $tenderIds);
+
+        // Search functionality
+        if ($request->filled('search')) {
+            $search = $request->get('search');
+            $query->where(function($q) use ($search) {
+                // Search in tender number
+                $q->whereHas('tender', function($tenderQuery) use ($search) {
+                    $tenderQuery->where('tender_no', 'like', "%{$search}%")
+                        ->orWhere('customer_tender_no', 'like', "%{$search}%");
+                })
+                // Search in dates (format: d-m-Y or d/m/Y or Y-m-d)
+                ->orWhereRaw("DATE_FORMAT(created_at, '%d-%m-%Y') LIKE ?", ["%{$search}%"])
+                ->orWhereRaw("DATE_FORMAT(created_at, '%d/%m/%Y') LIKE ?", ["%{$search}%"])
+                ->orWhereRaw("DATE_FORMAT(created_at, '%Y-%m-%d') LIKE ?", ["%{$search}%"])
+                ->orWhereRaw("DATE_FORMAT(created_at, '%d-%m-%Y %H:%i') LIKE ?", ["%{$search}%"])
+                ->orWhereRaw("DATE_FORMAT(created_at, '%d/%m/%Y %H:%i') LIKE ?", ["%{$search}%"]);
+            });
+        }
+
+        $evaluations = $query->latest()->paginate(15)->withQueryString();
 
         return view('tenders.evaluations.index', compact('evaluations'));
     }

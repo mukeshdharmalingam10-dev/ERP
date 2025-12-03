@@ -23,6 +23,73 @@
         </div>
     @endif
 
+    <!-- Search Section - Only show if there are items or a search/date query is active -->
+    @if($tenders->count() > 0 || request('search') || request('start_date') || request('end_date'))
+    <form method="GET" action="{{ route('tenders.index') }}" id="searchForm" style="background: #f8f9fa; padding: 20px; border-radius: 5px; margin-bottom: 20px;">
+        <div style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap;">
+            <div style="flex: 1;">
+                <label for="search" style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Search:</label>
+                <input type="text" name="search" id="search" value="{{ request('search') }}"
+                    style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;"
+                    placeholder="Search by Tender No, Company, Title, Date (dd-mm-yyyy)...">
+            </div>
+            <div>
+                <label for="start_date" style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Start Date</label>
+                <input type="date" name="start_date" id="start_date" value="{{ request('start_date') }}"
+                    style="padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; min-width: 180px;">
+            </div>
+            <div>
+                <label for="end_date" style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">End Date</label>
+                <input type="date" name="end_date" id="end_date" value="{{ request('end_date') }}"
+                    style="padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; min-width: 180px;">
+            </div>
+            <div>
+                <a href="{{ route('tenders.index') }}" style="padding: 10px 20px; background: #6c757d; color: white; text-decoration: none; border-radius: 5px; font-weight: 500; display: inline-flex; align-items: center;">
+                    <i class="fas fa-redo"></i> Reset
+                </a>
+            </div>
+        </div>
+    </form>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('search');
+            const searchForm = document.getElementById('searchForm');
+            let searchTimeout;
+
+            // Auto-focus the search input
+            if (searchInput) {
+                searchInput.focus();
+                // Place cursor at the end of the text
+                const length = searchInput.value.length;
+                searchInput.setSelectionRange(length, length);
+            }
+
+            searchForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const formData = new FormData(searchForm);
+                const params = new URLSearchParams(formData);
+                const url = '{{ route("tenders.index") }}?' + params.toString();
+                
+                // Use replace instead of href to avoid creating new history entry
+                window.location.replace(url);
+            });
+
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(function() {
+                    const formData = new FormData(searchForm);
+                    const params = new URLSearchParams(formData);
+                    const url = '{{ route("tenders.index") }}?' + params.toString();
+                    
+                    // Use replace instead of href to avoid creating new history entry
+                    window.location.replace(url);
+                }, 500); // Wait 500ms after user stops typing
+            });
+        });
+    </script>
+    @endif
+
     @if($tenders->count() > 0)
         <div style="overflow-x: auto;">
             <table style="width: 100%; border-collapse: collapse;">

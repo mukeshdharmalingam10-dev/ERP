@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Storage;
 
 class PurchaseOrderController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $user = auth()->user();
 
@@ -28,7 +28,24 @@ class PurchaseOrderController extends Controller
 
         $query = PurchaseOrder::with(['creator', 'items', 'purchaseIndent']);
         $query = $this->applyBranchFilter($query, PurchaseOrder::class);
-        $purchaseOrders = $query->latest()->paginate(15);
+
+        // Search functionality
+        if ($request->filled('search')) {
+            $search = $request->get('search');
+            $query->where(function($q) use ($search) {
+                $q->where('po_no', 'like', "%{$search}%")
+                  ->orWhereHas('purchaseIndent', function($indentQuery) use ($search) {
+                      $indentQuery->where('indent_no', 'like', "%{$search}%");
+                  })
+                  // Search in dates
+                  ->orWhereRaw("DATE_FORMAT(po_date, '%d-%m-%Y') LIKE ?", ["%{$search}%"])
+                  ->orWhereRaw("DATE_FORMAT(po_date, '%d/%m/%Y') LIKE ?", ["%{$search}%"])
+                  ->orWhereRaw("DATE_FORMAT(po_date, '%Y-%m-%d') LIKE ?", ["%{$search}%"])
+                  ->orWhereRaw("DATE_FORMAT(created_at, '%d-%m-%Y') LIKE ?", ["%{$search}%"]);
+            });
+        }
+
+        $purchaseOrders = $query->latest()->paginate(15)->withQueryString();
 
         return view('purchase.purchase_orders.index', compact('purchaseOrders'));
     }

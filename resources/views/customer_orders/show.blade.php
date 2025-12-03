@@ -170,7 +170,7 @@
                     @forelse($order->schedules as $s)
                         <tr style="border-bottom: 1px solid #dee2e6;">
                             <td style="padding: 10px; color: #333;">{{ optional(optional($s->customerOrderItem)->tenderItem)->title }}</td>
-                            <td style="padding: 10px; color: #333;">{{ optional($s->customerOrderItem)->po_sr_no }}</td>
+                            <td style="padding: 10px; color: #333;">{{ $s->po_sr_no }}</td>
                             <td style="padding: 10px; text-align: right; color: #333;">{{ $s->quantity }}</td>
                             <td style="padding: 10px; color: #333;">{{ optional($s->unit)->symbol }}</td>
                             <td style="padding: 10px; color: #333;">{{ optional($s->start_date)->format('Y-m-d') }}</td>
@@ -211,7 +211,7 @@
                     @forelse($order->amendments as $a)
                         <tr style="border-bottom: 1px solid #dee2e6;">
                             <td style="padding: 10px; color: #333;">{{ optional(optional($a->customerOrderItem)->tenderItem)->title }}</td>
-                            <td style="padding: 10px; color: #333;">{{ optional($a->customerOrderItem)->po_sr_no }}</td>
+                            <td style="padding: 10px; color: #333;">{{ $a->po_sr_no }}</td>
                             <td style="padding: 10px; color: #333;">{{ $a->amendment_no }}</td>
                             <td style="padding: 10px; color: #333;">{{ optional($a->amendment_date)->format('Y-m-d') }}</td>
                             <td style="padding: 10px; text-align: right; color: #333;">{{ $a->existing_quantity }}</td>

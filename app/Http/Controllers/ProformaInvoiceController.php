@@ -13,11 +13,29 @@ class ProformaInvoiceController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
         $query = \App\Models\ProformaInvoice::with('customer');
         $query = $this->applyBranchFilter($query, \App\Models\ProformaInvoice::class);
-        $invoices = $query->latest()->paginate(15);
+
+        // Search functionality
+        if ($request->filled('search')) {
+            $search = $request->get('search');
+            $query->where(function($q) use ($search) {
+                $q->where('invoice_no', 'like', "%{$search}%")
+                  ->orWhereHas('customer', function($customerQuery) use ($search) {
+                      $customerQuery->where('company_name', 'like', "%{$search}%")
+                                    ->orWhere('contact_name', 'like', "%{$search}%");
+                  })
+                  // Search in dates
+                  ->orWhereRaw("DATE_FORMAT(invoice_date, '%d-%m-%Y') LIKE ?", ["%{$search}%"])
+                  ->orWhereRaw("DATE_FORMAT(invoice_date, '%d/%m/%Y') LIKE ?", ["%{$search}%"])
+                  ->orWhereRaw("DATE_FORMAT(invoice_date, '%Y-%m-%d') LIKE ?", ["%{$search}%"])
+                  ->orWhereRaw("DATE_FORMAT(created_at, '%d-%m-%Y') LIKE ?", ["%{$search}%"]);
+            });
+        }
+
+        $invoices = $query->latest()->paginate(15)->withQueryString();
         return view('proforma-invoices.index', compact('invoices'));
     }
 

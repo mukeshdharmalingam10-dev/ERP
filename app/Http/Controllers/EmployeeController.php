@@ -14,7 +14,7 @@ class EmployeeController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         $user = auth()->user();
         
@@ -25,7 +25,27 @@ class EmployeeController extends Controller
 
         $query = Employee::with(['department', 'designation']);
         $query = $this->applyBranchFilter($query, Employee::class);
-        $employees = $query->latest()->paginate(15);
+
+        // Search functionality
+        if ($request->filled('search')) {
+            $search = $request->get('search');
+            $query->where(function($q) use ($search) {
+                $q->where('employee_code', 'like', "%{$search}%")
+                  ->orWhere('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('phone', 'like', "%{$search}%")
+                  ->orWhereHas('department', function($deptQuery) use ($search) {
+                      $deptQuery->where('name', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('designation', function($desigQuery) use ($search) {
+                      $desigQuery->where('name', 'like', "%{$search}%");
+                  })
+                  // Search in dates
+                  ->orWhereRaw("DATE_FORMAT(created_at, '%d-%m-%Y') LIKE ?", ["%{$search}%"]);
+            });
+        }
+
+        $employees = $query->latest()->paginate(15)->withQueryString();
         return view('masters.employees.index', compact('employees'));
     }
 

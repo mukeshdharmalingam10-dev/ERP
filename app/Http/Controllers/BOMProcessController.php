@@ -15,7 +15,7 @@ class BOMProcessController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         $user = auth()->user();
         
@@ -26,7 +26,20 @@ class BOMProcessController extends Controller
 
         $query = BOMProcess::with(['product', 'items.rawMaterial', 'items.unit', 'items.process']);
         $query = $this->applyBranchFilter($query, BOMProcess::class);
-        $bomProcesses = $query->latest()->paginate(15);
+
+        // Search functionality
+        if ($request->filled('search')) {
+            $search = $request->get('search');
+            $query->where(function($q) use ($search) {
+                $q->whereHas('product', function($productQuery) use ($search) {
+                    $productQuery->where('name', 'like', "%{$search}%");
+                })
+                // Search in dates
+                ->orWhereRaw("DATE_FORMAT(created_at, '%d-%m-%Y') LIKE ?", ["%{$search}%"]);
+            });
+        }
+
+        $bomProcesses = $query->latest()->paginate(15)->withQueryString();
         
         return view('bom-processes.index', compact('bomProcesses'));
     }

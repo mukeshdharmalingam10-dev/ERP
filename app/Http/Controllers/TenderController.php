@@ -19,7 +19,7 @@ class TenderController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         $user = auth()->user();
         
@@ -31,7 +31,52 @@ class TenderController extends Controller
         // Load related company, attended user, and items (for list view columns like Title)
         $query = Tender::with(['company', 'attendedBy', 'items']);
         $query = $this->applyBranchFilter($query, Tender::class);
-        $tenders = $query->latest()->paginate(15);
+
+        // Text search
+        if ($request->filled('search')) {
+            $search = $request->get('search');
+            $query->where(function($q) use ($search) {
+                $q->where('tender_no', 'like', "%{$search}%")
+                  ->orWhere('customer_tender_no', 'like', "%{$search}%")
+                  ->orWhereHas('items', function($itemsQuery) use ($search) {
+                      $itemsQuery->where('title', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('company', function($companyQuery) use ($search) {
+                      $companyQuery->where('company_name', 'like', "%{$search}%")
+                                    ->orWhere('contact_name', 'like', "%{$search}%");
+                  })
+                  ->orWhere('tender_type', 'like', "%{$search}%")
+                  ->orWhere('bidding_system', 'like', "%{$search}%")
+                  ->orWhere('tender_status', 'like', "%{$search}%")
+                  ->orWhere('technical_spec_rank', 'like', "%{$search}%")
+                  ->orWhere('bid_result', 'like', "%{$search}%")
+                  // Search in dates (string-based)
+                  ->orWhereRaw("DATE_FORMAT(closing_date_time, '%d-%m-%Y') LIKE ?", ["%{$search}%"])
+                  ->orWhereRaw("DATE_FORMAT(closing_date_time, '%d/%m/%Y') LIKE ?", ["%{$search}%"])
+                  ->orWhereRaw("DATE_FORMAT(closing_date_time, '%Y-%m-%d') LIKE ?", ["%{$search}%"])
+                  ->orWhereRaw("DATE_FORMAT(closing_date_time, '%d-%m-%Y %H:%i') LIKE ?", ["%{$search}%"])
+                  ->orWhereRaw("DATE_FORMAT(created_at, '%d-%m-%Y') LIKE ?", ["%{$search}%"]);
+            });
+        }
+
+        // Date range filter on Closing Date & Time
+        if ($request->filled('start_date') || $request->filled('end_date')) {
+            $startDate = $request->input('start_date');
+            $endDate = $request->input('end_date');
+
+            $query->where(function ($q) use ($startDate, $endDate) {
+                if ($startDate) {
+                    // from start date 00:00
+                    $q->whereDate('closing_date_time', '>=', $startDate);
+                }
+                if ($endDate) {
+                    // up to end date 23:59:59
+                    $q->whereDate('closing_date_time', '<=', $endDate);
+                }
+            });
+        }
+
+        $tenders = $query->latest()->paginate(15)->withQueryString();
         return view('tenders.index', compact('tenders'));
     }
 
@@ -102,6 +147,10 @@ class TenderController extends Controller
             'contract_type' => 'nullable|in:Goods,Service',
             'bidding_system' => 'nullable|in:Single Packet,Two Packet',
             'procure_from_approved_source' => 'nullable|in:Yes,No',
+            'validity_of_offer_days' => 'nullable|integer|min:0',
+            'regular_developmental' => 'nullable|in:Regular,Developmental',
+            'validity_of_offer_days' => 'nullable|integer|min:0',
+            'regular_developmental' => 'nullable|in:Regular,Developmental',
             'tender_document_cost' => 'nullable|numeric|min:0',
             'emd' => 'nullable|numeric|min:0',
             'ra_enabled' => 'nullable|in:Yes,No',
@@ -160,6 +209,8 @@ class TenderController extends Controller
                 'contract_type' => $request->contract_type,
                 'bidding_system' => $request->bidding_system,
                 'procure_from_approved_source' => $request->procure_from_approved_source,
+                'validity_of_offer_days' => $request->validity_of_offer_days,
+                'regular_developmental' => $request->regular_developmental ?: 'Regular',
                 'tender_document_cost' => $request->tender_document_cost,
                 'emd' => $request->emd,
                 'ra_enabled' => $request->ra_enabled,
@@ -404,6 +455,8 @@ class TenderController extends Controller
                 'contract_type' => $request->contract_type,
                 'bidding_system' => $request->bidding_system,
                 'procure_from_approved_source' => $request->procure_from_approved_source,
+                'validity_of_offer_days' => $request->validity_of_offer_days,
+                'regular_developmental' => $request->regular_developmental ?: 'Regular',
                 'tender_document_cost' => $request->tender_document_cost,
                 'emd' => $request->emd,
                 'ra_enabled' => $request->ra_enabled,

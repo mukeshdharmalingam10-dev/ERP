@@ -29,6 +29,8 @@ class Tender extends Model
         'contract_type',
         'bidding_system',
         'procure_from_approved_source',
+        'validity_of_offer_days',
+        'regular_developmental',
         'tender_document_cost',
         'emd',
         'ra_enabled',

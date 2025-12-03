@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Storage;
 
 class CustomerOrderController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $user = auth()->user();
 
@@ -25,7 +25,24 @@ class CustomerOrderController extends Controller
 
         $query = CustomerOrder::with('tender');
         $query = $this->applyBranchFilter($query, CustomerOrder::class);
-        $orders = $query->latest()->paginate(15);
+
+        // Search functionality
+        if ($request->filled('search')) {
+            $search = $request->get('search');
+            $query->where(function($q) use ($search) {
+                $q->where('order_no', 'like', "%{$search}%")
+                  ->orWhereHas('tender', function($tenderQuery) use ($search) {
+                      $tenderQuery->where('tender_no', 'like', "%{$search}%");
+                  })
+                  // Search in dates
+                  ->orWhereRaw("DATE_FORMAT(order_date, '%d-%m-%Y') LIKE ?", ["%{$search}%"])
+                  ->orWhereRaw("DATE_FORMAT(order_date, '%d/%m/%Y') LIKE ?", ["%{$search}%"])
+                  ->orWhereRaw("DATE_FORMAT(order_date, '%Y-%m-%d') LIKE ?", ["%{$search}%"])
+                  ->orWhereRaw("DATE_FORMAT(created_at, '%d-%m-%Y') LIKE ?", ["%{$search}%"]);
+            });
+        }
+
+        $orders = $query->latest()->paginate(15)->withQueryString();
 
         return view('customer_orders.index', compact('orders'));
     }
@@ -94,7 +111,9 @@ class CustomerOrderController extends Controller
             'items.*.installation_charges' => 'nullable|numeric|min:0',
             'items.*.line_amount' => 'required|numeric|min:0',
             'schedules' => 'nullable|array',
+            'schedules.*.po_sr_no' => 'nullable|string|max:255',
             'amendments' => 'nullable|array',
+            'amendments.*.po_sr_no' => 'nullable|string|max:255',
         ]);
 
         try {
@@ -162,6 +181,7 @@ class CustomerOrderController extends Controller
                     CustomerOrderSchedule::create([
                         'customer_order_id' => $order->id,
                         'customer_order_item_id' => $itemMap[$itemIndex]->id,
+                        'po_sr_no' => $schedule['po_sr_no'] ?? null,
                         'quantity' => $schedule['quantity'],
                         'unit_id' => $schedule['unit_id'],
                         'start_date' => $schedule['start_date'],
@@ -186,6 +206,7 @@ class CustomerOrderController extends Controller
                     CustomerOrderAmendment::create([
                         'customer_order_id' => $order->id,
                         'customer_order_item_id' => $itemMap[$itemIndex]->id,
+                        'po_sr_no' => $amendment['po_sr_no'] ?? null,
                         'amendment_no' => $amendment['amendment_no'] ?? null,
                         'amendment_date' => $amendment['amendment_date'],
                         'existing_quantity' => $amendment['existing_quantity'] ?? null,
@@ -297,7 +318,9 @@ class CustomerOrderController extends Controller
             'items.*.installation_charges' => 'nullable|numeric|min:0',
             'items.*.line_amount' => 'required|numeric|min:0',
             'schedules' => 'nullable|array',
+            'schedules.*.po_sr_no' => 'nullable|string|max:255',
             'amendments' => 'nullable|array',
+            'amendments.*.po_sr_no' => 'nullable|string|max:255',
         ]);
 
         try {
@@ -373,6 +396,7 @@ class CustomerOrderController extends Controller
                     CustomerOrderSchedule::create([
                         'customer_order_id' => $order->id,
                         'customer_order_item_id' => $itemMap[$itemIndex]->id,
+                        'po_sr_no' => $schedule['po_sr_no'] ?? null,
                         'quantity' => $schedule['quantity'],
                         'unit_id' => $schedule['unit_id'],
                         'start_date' => $schedule['start_date'],
@@ -397,6 +421,7 @@ class CustomerOrderController extends Controller
                     CustomerOrderAmendment::create([
                         'customer_order_id' => $order->id,
                         'customer_order_item_id' => $itemMap[$itemIndex]->id,
+                        'po_sr_no' => $amendment['po_sr_no'] ?? null,
                         'amendment_no' => $amendment['amendment_no'] ?? null,
                         'amendment_date' => $amendment['amendment_date'],
                         'existing_quantity' => $amendment['existing_quantity'] ?? null,

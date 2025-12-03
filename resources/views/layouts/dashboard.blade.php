@@ -692,7 +692,7 @@
             mainContent.classList.remove('expanded');
         }
         
-        // Handle mobile view
+        // Handle mobile view (and restore sidebar when back to desktop)
         function handleMobileSidebar() {
             const sidebar = document.getElementById('sidebar');
             const mainContent = document.getElementById('mainContent');
@@ -703,6 +703,10 @@
                 sidebar.classList.remove('collapsed');
                 mainContent.classList.add('expanded');
                 mainContent.classList.remove('sidebar-collapsed');
+            } else {
+                // On desktop widths always show sidebar (unless user manually collapses it)
+                sidebar.classList.remove('closed');
+                mainContent.classList.remove('expanded');
             }
         }
         

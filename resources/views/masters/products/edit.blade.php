@@ -68,37 +68,16 @@
             @enderror
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
-            <div>
-                <label for="unit_id" style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Unit <span style="color: red;">*</span></label>
-                <select name="unit_id" id="unit_id" required
-                    style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
-                    <option value="">Select Unit</option>
-                    @foreach($units as $unit)
-                        <option value="{{ $unit->id }}" {{ old('unit_id', $product->unit_id) == $unit->id ? 'selected' : '' }}>{{ $unit->name }} ({{ $unit->symbol }})</option>
-                    @endforeach
-                </select>
-                @error('unit_id')
-                    <p style="color: #dc3545; font-size: 12px; margin-top: 5px;">{{ $message }}</p>
-                @enderror
-            </div>
-            <div>
-                <label for="price" style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Price <span style="color: red;">*</span></label>
-                <input type="number" step="0.01" name="price" id="price" value="{{ old('price', $product->price) }}" required
-                    style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;"
-                    placeholder="0.00">
-                @error('price')
-                    <p style="color: #dc3545; font-size: 12px; margin-top: 5px;">{{ $message }}</p>
-                @enderror
-            </div>
-        </div>
-
         <div style="margin-bottom: 20px;">
-            <label for="gst_rate" style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">GST Rate (%) <span style="color: red;">*</span></label>
-            <input type="number" step="0.01" name="gst_rate" id="gst_rate" value="{{ old('gst_rate', $product->gst_rate) }}" required
-                style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;"
-                placeholder="e.g., 18.00">
-            @error('gst_rate')
+            <label for="unit_id" style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Unit <span style="color: red;">*</span></label>
+            <select name="unit_id" id="unit_id" required
+                style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
+                <option value="">Select Unit</option>
+                @foreach($units as $unit)
+                    <option value="{{ $unit->id }}" {{ old('unit_id', $product->unit_id) == $unit->id ? 'selected' : '' }}>{{ $unit->name }} ({{ $unit->symbol }})</option>
+                @endforeach
+            </select>
+            @error('unit_id')
                 <p style="color: #dc3545; font-size: 12px; margin-top: 5px;">{{ $message }}</p>
             @enderror
         </div>

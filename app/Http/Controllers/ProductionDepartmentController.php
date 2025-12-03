@@ -10,7 +10,7 @@ class ProductionDepartmentController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         $user = auth()->user();
         
@@ -21,7 +21,19 @@ class ProductionDepartmentController extends Controller
 
         $query = ProductionDepartment::query();
         $query = $this->applyBranchFilter($query, ProductionDepartment::class);
-        $productionDepartments = $query->latest()->paginate(15);
+
+        // Search functionality
+        if ($request->filled('search')) {
+            $search = $request->get('search');
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%")
+                  // Search in dates
+                  ->orWhereRaw("DATE_FORMAT(created_at, '%d-%m-%Y') LIKE ?", ["%{$search}%"]);
+            });
+        }
+
+        $productionDepartments = $query->latest()->paginate(15)->withQueryString();
         return view('masters.production-departments.index', compact('productionDepartments'));
     }
 

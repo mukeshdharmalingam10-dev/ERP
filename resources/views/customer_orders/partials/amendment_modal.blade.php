@@ -33,9 +33,9 @@
                         <label style="display:block; font-size:13px; font-weight:600; color:#0f172a; margin-bottom:4px;">
                             PO SR No <span style="color:#ef4444;">*</span>
                         </label>
-                        <input id="amendment_po_sr_no" type="text" readonly
-                               style="width:100%; padding:9px 10px; border-radius:6px; border:1px solid #d1d5db; background:#e5e7eb; font-size:13px; color:#111827;">
-                        <p style="margin:4px 0 0 0; font-size:12px; color:#6b7280;">Auto-populated from selected product</p>
+                        <input id="amendment_po_sr_no" type="text" oninput="CustomerOrderAmendmentModal.updatePoSrNo(this.value)"
+                               style="width:100%; padding:9px 10px; border-radius:6px; border:1px solid #d1d5db; background:#ffffff; font-size:13px; color:#111827;">
+                        <p style="margin:4px 0 0 0; font-size:12px; color:#6b7280;">Auto-populated from selected product (you can edit if needed)</p>
                     </div>
                 </div>
             </div>
@@ -151,13 +151,20 @@
             if (item) {
                 currentItem = item;
                 document.getElementById('amendment_product_name').value = item.product_name;
-                document.getElementById('amendment_po_sr_no').value = item.po_sr_no || '';
                 document.getElementById('amendment_ordered_qty_info').textContent =
                     item.ordered_qty ? `Ordered Qty: ${item.ordered_qty} ${item.unit_symbol || ''}` : '';
                 
                 // Load existing amendments for this item
                 const allAmendments = window.amendments || [];
                 amendmentsRef = allAmendments.filter(a => a.item_index === item.index);
+
+                // Prefer PO SR No from existing amendment rows, fall back to item
+                const existingPo = amendmentsRef.length ? (amendmentsRef[0].po_sr_no || '') : (item.po_sr_no || '');
+                document.getElementById('amendment_po_sr_no').value = existingPo;
+                if (existingPo) {
+                    currentItem.po_sr_no = existingPo;
+                }
+
                 renderRows();
             }
         }
@@ -249,6 +256,19 @@
             amendmentsRef[idx][field] = value;
         }
 
+        function updatePoSrNo(value) {
+            if (currentItem) {
+                currentItem.po_sr_no = value;
+                const poInput = document.querySelector(`input[name="items[${currentItem.index}][po_sr_no]"]`);
+                if (poInput) {
+                    poInput.value = value;
+                }
+            }
+            amendmentsRef.forEach(a => {
+                a.po_sr_no = value;
+            });
+        }
+
         function save() {
             if (!currentItem) {
                 alert('Please select a product first.');
@@ -282,6 +302,7 @@
             updateField,
             save,
             onProductSelect,
+            updatePoSrNo,
         };
     })();
 </script>

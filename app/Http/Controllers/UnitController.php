@@ -16,7 +16,7 @@ class UnitController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
         $user = auth()->user();
         
@@ -27,7 +27,19 @@ class UnitController extends Controller
 
         $query = \App\Models\Unit::query();
         $query = $this->applyBranchFilter($query, \App\Models\Unit::class);
-        $units = $query->latest()->paginate(15);
+
+        // Search functionality
+        if ($request->filled('search')) {
+            $search = $request->get('search');
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('symbol', 'like', "%{$search}%")
+                  // Search in dates
+                  ->orWhereRaw("DATE_FORMAT(created_at, '%d-%m-%Y') LIKE ?", ["%{$search}%"]);
+            });
+        }
+
+        $units = $query->latest()->paginate(15)->withQueryString();
         return view('masters.units.index', compact('units'));
     }
 

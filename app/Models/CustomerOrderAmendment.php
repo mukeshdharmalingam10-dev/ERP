@@ -12,6 +12,7 @@ class CustomerOrderAmendment extends Model
     protected $fillable = [
         'customer_order_id',
         'customer_order_item_id',
+        'po_sr_no',
         'amendment_no',
         'amendment_date',
         'existing_quantity',

@@ -11,11 +11,28 @@ class CustomerController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
         $query = \App\Models\Customer::query();
         $query = $this->applyBranchFilter($query, \App\Models\Customer::class);
-        $customers = $query->latest()->paginate(15);
+
+        // Search functionality
+        if ($request->filled('search')) {
+            $search = $request->get('search');
+            $query->where(function($q) use ($search) {
+                $q->where('company_name', 'like', "%{$search}%")
+                  ->orWhere('contact_name', 'like', "%{$search}%")
+                  ->orWhere('gst_no', 'like', "%{$search}%")
+                  ->orWhere('billing_city', 'like', "%{$search}%")
+                  ->orWhere('billing_state', 'like', "%{$search}%")
+                  ->orWhere('billing_pincode', 'like', "%{$search}%")
+                  ->orWhere('contact_info', 'like', "%{$search}%")
+                  // Search in dates
+                  ->orWhereRaw("DATE_FORMAT(created_at, '%d-%m-%Y') LIKE ?", ["%{$search}%"]);
+            });
+        }
+
+        $customers = $query->latest()->paginate(15)->withQueryString();
         return view('masters.customers.index', compact('customers'));
     }
 

@@ -12,6 +12,7 @@ class CustomerOrderSchedule extends Model
     protected $fillable = [
         'customer_order_id',
         'customer_order_item_id',
+        'po_sr_no',
         'quantity',
         'unit_id',
         'start_date',

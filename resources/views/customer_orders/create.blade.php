@@ -32,16 +32,6 @@
             </div>
             <div style="padding: 20px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
                 <div>
-                    <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Customer Order No</label>
-                    <input type="text" name="order_no" value="{{ old('order_no', $orderNo) }}" readonly
-                           style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; background: #f8f9fa;">
-                </div>
-                <div>
-                    <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Order Date <span style="color: red;">*</span></label>
-                    <input type="date" name="order_date" value="{{ old('order_date', date('Y-m-d')) }}" required
-                           style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
-                </div>
-                <div>
                     <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Tender No <span style="color: red;">*</span></label>
                     <select name="tender_id" id="tender_id" required
                             style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
@@ -52,6 +42,16 @@
                             </option>
                         @endforeach
                     </select>
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Customer Order No</label>
+                    <input type="text" name="order_no" value="{{ old('order_no', $orderNo) }}" readonly
+                           style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; background: #f8f9fa;">
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Order Date <span style="color: red;">*</span></label>
+                    <input type="date" name="order_date" value="{{ old('order_date', date('Y-m-d')) }}" required
+                           style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
                 </div>
             </div>
         </div>
@@ -320,6 +320,7 @@
                     <input type="text" name="items[${index}][pl_code]" value="${item.pl_code || ''}" readonly
                            style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 13px; background:#f8f9fa;">
                     <input type="hidden" name="items[${index}][tender_item_id]" value="${item.id}">
+                    <input type="hidden" name="items[${index}][po_sr_no]" value="">
                 </td>
                 <td style="padding: 10px; text-align: right;">
                     <input type="number" name="items[${index}][ordered_qty]" value="${item.qty}" step="0.01" min="0"
@@ -480,6 +481,7 @@
             const base = `schedules[${index}]`;
             container.insertAdjacentHTML('beforeend', `
                 <input type="hidden" name="${base}[item_index]" value="${s.item_index}">
+                    <input type="hidden" name="${base}[po_sr_no]" value="${s.po_sr_no || ''}">
                 <input type="hidden" name="${base}[quantity]" value="${s.quantity}">
                 <input type="hidden" name="${base}[unit_id]" value="${s.unit_id}">
                 <input type="hidden" name="${base}[start_date]" value="${s.start_date}">
@@ -496,6 +498,7 @@
             const base = `amendments[${index}]`;
             container.insertAdjacentHTML('beforeend', `
                 <input type="hidden" name="${base}[item_index]" value="${a.item_index}">
+                    <input type="hidden" name="${base}[po_sr_no]" value="${a.po_sr_no || ''}">
                 <input type="hidden" name="${base}[amendment_no]" value="${a.amendment_no || ''}">
                 <input type="hidden" name="${base}[amendment_date]" value="${a.amendment_date}">
                 <input type="hidden" name="${base}[existing_quantity]" value="${a.existing_quantity || ''}">

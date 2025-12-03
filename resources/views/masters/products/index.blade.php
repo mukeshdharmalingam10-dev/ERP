@@ -17,6 +17,57 @@
         </div>
     @endif
 
+    <!-- Search Section - Only show if there are items or a search query is active -->
+    @if($products->count() > 0 || request('search'))
+    <form method="GET" action="{{ route('products.index') }}" id="searchForm" style="background: #f8f9fa; padding: 20px; border-radius: 5px; margin-bottom: 20px;">
+        <div style="display: flex; gap: 15px; align-items: end;">
+            <div style="flex: 1;">
+                <label for="search" style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Search:</label>
+                <input type="text" name="search" id="search" value="{{ request('search') }}"
+                    style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;"
+                    placeholder="Search by Product Name, Code, Category, Unit, Date (dd-mm-yyyy)...">
+            </div>
+            <div>
+                <a href="{{ route('products.index') }}" style="padding: 10px 20px; background: #6c757d; color: white; text-decoration: none; border-radius: 5px; font-weight: 500; display: inline-flex; align-items: center;">
+                    <i class="fas fa-redo"></i> Reset
+                </a>
+            </div>
+        </div>
+    </form>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('search');
+            const searchForm = document.getElementById('searchForm');
+            let searchTimeout;
+
+            if (searchInput) {
+                searchInput.focus();
+                const length = searchInput.value.length;
+                searchInput.setSelectionRange(length, length);
+            }
+
+            searchForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const formData = new FormData(searchForm);
+                const params = new URLSearchParams(formData);
+                const url = '{{ route("products.index") }}?' + params.toString();
+                window.location.replace(url);
+            });
+
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(function() {
+                    const formData = new FormData(searchForm);
+                    const params = new URLSearchParams(formData);
+                    const url = '{{ route("products.index") }}?' + params.toString();
+                    window.location.replace(url);
+                }, 500);
+            });
+        });
+    </script>
+    @endif
+
     @if($products->count() > 0)
         <div style="overflow-x: auto;">
             <table style="width: 100%; border-collapse: collapse;">
@@ -25,8 +76,6 @@
                         <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">S.No</th>
                         <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Name</th>
                         <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Unit</th>
-                        <th style="padding: 12px; text-align: right; color: #333; font-weight: 600;">Price</th>
-                        <th style="padding: 12px; text-align: right; color: #333; font-weight: 600;">GST Rate (%)</th>
                         <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Product Category</th>
                         <th style="padding: 12px; text-align: center; color: #333; font-weight: 600;">Actions</th>
                     </tr>
@@ -37,8 +86,6 @@
                             <td style="padding: 12px; color: #666;">{{ ($products->currentPage() - 1) * $products->perPage() + $loop->iteration }}</td>
                             <td style="padding: 12px; color: #333; font-weight: 500;">{{ $product->name }}</td>
                             <td style="padding: 12px; color: #666;">{{ $product->unit->symbol ?? 'N/A' }}</td>
-                            <td style="padding: 12px; text-align: right; color: #666;">₹{{ number_format($product->price, 2) }}</td>
-                            <td style="padding: 12px; text-align: right; color: #666;">{{ $product->gst_rate }}%</td>
                             <td style="padding: 12px; color: #666;">{{ $product->productCategory->name ?? ($product->category ?? 'N/A') }}</td>
                             <td style="padding: 12px; text-align: center;">
                                 <div style="display: flex; gap: 8px; justify-content: center;">

@@ -238,6 +238,20 @@
                             style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
                     </div>
                 </div>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 15px;">
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Regular / Developmental</label>
+                        <select name="regular_developmental" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
+                            <option value="Regular" {{ old('regular_developmental', 'Regular') == 'Regular' ? 'selected' : '' }}>Regular</option>
+                            <option value="Developmental" {{ old('regular_developmental') == 'Developmental' ? 'selected' : '' }}>Developmental</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500; background: #ff9800; color: #fff; padding: 4px 8px; display: inline-block; border-radius: 3px;">Validity of Offer (Days)</label>
+                        <input type="number" name="validity_of_offer_days" min="0" value="{{ old('validity_of_offer_days') }}"
+                            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
+                    </div>
+                </div>
             </div>
         </div>
 

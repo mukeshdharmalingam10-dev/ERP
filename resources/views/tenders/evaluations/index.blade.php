@@ -11,10 +11,64 @@
         </a>
     </div>
 
+    <!-- Search Section - Only show if there are items or a search query is active -->
+    @if($evaluations->count() > 0 || request('search'))
+    <form method="GET" action="{{ route('tender-evaluations.index') }}" id="searchForm" style="background: #f8f9fa; padding: 20px; border-radius: 5px; margin-bottom: 20px;">
+        <div style="display: flex; gap: 15px; align-items: end;">
+            <div style="flex: 1;">
+                <label for="search" style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Search:</label>
+                <input type="text" name="search" id="search" value="{{ request('search') }}"
+                    style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;"
+                    placeholder="Search by Tender No, Date (dd-mm-yyyy)...">
+            </div>
+            <div>
+                <a href="{{ route('tender-evaluations.index') }}" style="padding: 10px 20px; background: #6c757d; color: white; text-decoration: none; border-radius: 5px; font-weight: 500; display: inline-flex; align-items: center;">
+                    <i class="fas fa-redo"></i> Reset
+                </a>
+            </div>
+        </div>
+    </form>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('search');
+            const searchForm = document.getElementById('searchForm');
+            let searchTimeout;
+
+            // Auto-focus the search input
+            if (searchInput) {
+                searchInput.focus();
+                // Place cursor at the end of the text
+                const length = searchInput.value.length;
+                searchInput.setSelectionRange(length, length);
+            }
+
+            searchForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const formData = new FormData(searchForm);
+                const params = new URLSearchParams(formData);
+                const url = '{{ route("tender-evaluations.index") }}?' + params.toString();
+                window.location.replace(url);
+            });
+
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(function() {
+                    const formData = new FormData(searchForm);
+                    const params = new URLSearchParams(formData);
+                    const url = '{{ route("tender-evaluations.index") }}?' + params.toString();
+                    window.location.replace(url);
+                }, 500);
+            });
+        });
+    </script>
+    @endif
+
     <div style="overflow-x: auto;">
         <table style="width: 100%; border-collapse: collapse;">
             <thead>
                 <tr style="background: #f8f9fa; border-bottom: 2px solid #dee2e6;">
+                    <th style="padding: 12px; text-align: center; color: #333; font-weight: 600; width: 50px;">S.No</th>
                     <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Tender No</th>
                     <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Closing Date &amp; Time</th>
                     <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Evaluation Document</th>
@@ -23,8 +77,11 @@
                 </tr>
             </thead>
             <tbody>
-                @forelse($evaluations as $evaluation)
+                @forelse($evaluations as $index => $evaluation)
                     <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 10px; text-align: center; color: #333;">
+                            {{ ($evaluations->currentPage() - 1) * $evaluations->perPage() + $index + 1 }}
+                        </td>
                         <td style="padding: 10px; color: #333;">
                             {{ optional($evaluation->tender)->tender_no ?? '-' }}
                         </td>
@@ -67,7 +124,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" style="padding: 12px; text-align: center; color: #777;">
+                        <td colspan="6" style="padding: 12px; text-align: center; color: #777;">
                             No tender evaluations found.
                         </td>
                     </tr>

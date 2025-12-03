@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Storage;
 
 class PurchaseIndentController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $user = auth()->user();
 
@@ -24,7 +24,22 @@ class PurchaseIndentController extends Controller
 
         $query = PurchaseIndent::with(['creator', 'items']);
         $query = $this->applyBranchFilter($query, PurchaseIndent::class);
-        $indents = $query->latest()->paginate(15);
+
+        // Search functionality
+        if ($request->filled('search')) {
+            $search = $request->get('search');
+            $query->where(function($q) use ($search) {
+                $q->where('indent_no', 'like', "%{$search}%")
+                  ->orWhere('status', 'like', "%{$search}%")
+                  // Search in dates
+                  ->orWhereRaw("DATE_FORMAT(indent_date, '%d-%m-%Y') LIKE ?", ["%{$search}%"])
+                  ->orWhereRaw("DATE_FORMAT(indent_date, '%d/%m/%Y') LIKE ?", ["%{$search}%"])
+                  ->orWhereRaw("DATE_FORMAT(indent_date, '%Y-%m-%d') LIKE ?", ["%{$search}%"])
+                  ->orWhereRaw("DATE_FORMAT(created_at, '%d-%m-%Y') LIKE ?", ["%{$search}%"]);
+            });
+        }
+
+        $indents = $query->latest()->paginate(15)->withQueryString();
 
         return view('purchase.purchase_indents.index', compact('indents'));
     }
