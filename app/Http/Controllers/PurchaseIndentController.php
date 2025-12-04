@@ -11,6 +11,7 @@ use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use App\Helpers\FileUploadHelper;
 
 class PurchaseIndentController extends Controller
 {
@@ -108,7 +109,10 @@ class PurchaseIndentController extends Controller
             $indent->created_by_id = $user->id;
 
             if ($request->hasFile('upload')) {
-                $path = $request->file('upload')->store('purchase-indents', 'public');
+                $path = FileUploadHelper::storeWithOriginalName(
+                    $request->file('upload'),
+                    'purchase-indents'
+                );
                 $indent->upload_path = $path;
                 $indent->upload_original_name = $request->file('upload')->getClientOriginalName();
             }
@@ -225,7 +229,10 @@ class PurchaseIndentController extends Controller
                 if ($indent->upload_path) {
                     Storage::disk('public')->delete($indent->upload_path);
                 }
-                $path = $request->file('upload')->store('purchase-indents', 'public');
+                $path = FileUploadHelper::storeWithOriginalName(
+                    $request->file('upload'),
+                    'purchase-indents'
+                );
                 $indent->upload_path = $path;
                 $indent->upload_original_name = $request->file('upload')->getClientOriginalName();
             }

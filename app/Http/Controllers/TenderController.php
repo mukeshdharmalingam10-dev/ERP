@@ -13,6 +13,7 @@ use App\Models\Unit;
 use App\Models\ProductionDepartment;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use App\Helpers\FileUploadHelper;
 
 class TenderController extends Controller
 {
@@ -161,6 +162,9 @@ class TenderController extends Controller
             'tender_document_attachment' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
             'financial_tabulation_attachment' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
             'technical_spec_attachment' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
+            'delete_tender_document_attachment' => 'nullable|boolean',
+            'delete_financial_tabulation_attachment' => 'nullable|boolean',
+            'delete_technical_spec_attachment' => 'nullable|boolean',
             'technical_spec_rank' => 'nullable|string|max:255',
             'tender_status' => 'nullable|in:Bid not coated,Bid Coated',
             'bid_result' => 'nullable|in:Bid Awarded,Bid not Awarded',
@@ -180,13 +184,22 @@ class TenderController extends Controller
             $technicalSpecPath = null;
 
             if ($request->hasFile('tender_document_attachment')) {
-                $tenderDocumentPath = $request->file('tender_document_attachment')->store('tender_documents', 'public');
+                $tenderDocumentPath = FileUploadHelper::storeWithOriginalName(
+                    $request->file('tender_document_attachment'),
+                    'tender_documents'
+                );
             }
             if ($request->hasFile('financial_tabulation_attachment')) {
-                $financialTabulationPath = $request->file('financial_tabulation_attachment')->store('financial_tabulations', 'public');
+                $financialTabulationPath = FileUploadHelper::storeWithOriginalName(
+                    $request->file('financial_tabulation_attachment'),
+                    'financial_tabulations'
+                );
             }
             if ($request->hasFile('technical_spec_attachment')) {
-                $technicalSpecPath = $request->file('technical_spec_attachment')->store('technical_specs', 'public');
+                $technicalSpecPath = FileUploadHelper::storeWithOriginalName(
+                    $request->file('technical_spec_attachment'),
+                    'technical_specs'
+                );
             }
 
             $tender = Tender::create([
@@ -279,7 +292,10 @@ class TenderController extends Controller
                     if (!empty($remarkData['remarks'])) {
                         $corrigendumPath = null;
                         if (isset($remarkData['corrigendum_file']) && $remarkData['corrigendum_file'] instanceof \Illuminate\Http\UploadedFile) {
-                            $corrigendumPath = $remarkData['corrigendum_file']->store('tender_corrigendums', 'public');
+                            $corrigendumPath = FileUploadHelper::storeWithOriginalName(
+                                $remarkData['corrigendum_file'],
+                                'tender_corrigendums'
+                            );
                         }
 
                         TenderRemark::create([
@@ -412,28 +428,57 @@ class TenderController extends Controller
         try {
             DB::beginTransaction();
 
-            // Handle file uploads
+            // Handle file uploads and optional deletions
             $tenderDocumentPath = $tender->tender_document_attachment;
             $financialTabulationPath = $tender->financial_tabulation_attachment ?? null;
             $technicalSpecPath = $tender->technical_spec_attachment ?? null;
 
-            if ($request->hasFile('tender_document_attachment')) {
+            // Explicit delete for Tender Document attachment
+            if ($request->boolean('delete_tender_document_attachment')) {
                 if ($tenderDocumentPath) {
                     Storage::disk('public')->delete($tenderDocumentPath);
                 }
-                $tenderDocumentPath = $request->file('tender_document_attachment')->store('tender_documents', 'public');
+                $tenderDocumentPath = null;
+            } elseif ($request->hasFile('tender_document_attachment')) {
+                if ($tenderDocumentPath) {
+                    Storage::disk('public')->delete($tenderDocumentPath);
+                }
+                $tenderDocumentPath = FileUploadHelper::storeWithOriginalName(
+                    $request->file('tender_document_attachment'),
+                    'tender_documents'
+                );
             }
-            if ($request->hasFile('financial_tabulation_attachment')) {
+
+            // Explicit delete for Financial Tabulation attachment
+            if ($request->boolean('delete_financial_tabulation_attachment')) {
                 if ($financialTabulationPath) {
                     Storage::disk('public')->delete($financialTabulationPath);
                 }
-                $financialTabulationPath = $request->file('financial_tabulation_attachment')->store('financial_tabulations', 'public');
+                $financialTabulationPath = null;
+            } elseif ($request->hasFile('financial_tabulation_attachment')) {
+                if ($financialTabulationPath) {
+                    Storage::disk('public')->delete($financialTabulationPath);
+                }
+                $financialTabulationPath = FileUploadHelper::storeWithOriginalName(
+                    $request->file('financial_tabulation_attachment'),
+                    'financial_tabulations'
+                );
             }
-            if ($request->hasFile('technical_spec_attachment')) {
+
+            // Explicit delete for Technical Specification attachment
+            if ($request->boolean('delete_technical_spec_attachment')) {
                 if ($technicalSpecPath) {
                     Storage::disk('public')->delete($technicalSpecPath);
                 }
-                $technicalSpecPath = $request->file('technical_spec_attachment')->store('technical_specs', 'public');
+                $technicalSpecPath = null;
+            } elseif ($request->hasFile('technical_spec_attachment')) {
+                if ($technicalSpecPath) {
+                    Storage::disk('public')->delete($technicalSpecPath);
+                }
+                $technicalSpecPath = FileUploadHelper::storeWithOriginalName(
+                    $request->file('technical_spec_attachment'),
+                    'technical_specs'
+                );
             }
 
             $tender->update([
@@ -532,7 +577,10 @@ class TenderController extends Controller
                     if (!empty($remarkData['remarks'])) {
                         $corrigendumPath = null;
                         if (isset($remarkData['corrigendum_file']) && $remarkData['corrigendum_file'] instanceof \Illuminate\Http\UploadedFile) {
-                            $corrigendumPath = $remarkData['corrigendum_file']->store('tender_corrigendums', 'public');
+                            $corrigendumPath = FileUploadHelper::storeWithOriginalName(
+                                $remarkData['corrigendum_file'],
+                                'tender_corrigendums'
+                            );
                         }
 
                         TenderRemark::create([

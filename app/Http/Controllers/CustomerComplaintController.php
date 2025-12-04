@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use App\Helpers\FileUploadHelper;
 
 class CustomerComplaintController extends Controller
 {
@@ -100,7 +101,10 @@ class CustomerComplaintController extends Controller
 
             $attachmentPath = null;
             if ($request->hasFile('attachment')) {
-                $attachmentPath = $request->file('attachment')->store('customer_complaints', 'public');
+                $attachmentPath = FileUploadHelper::storeWithOriginalName(
+                    $request->file('attachment'),
+                    'customer_complaints'
+                );
             }
 
             CustomerComplaint::create([
@@ -220,7 +224,10 @@ class CustomerComplaintController extends Controller
                     Storage::disk('public')->delete($attachmentPath);
                 }
 
-                $attachmentPath = $request->file('attachment')->store('customer_complaints', 'public');
+                $attachmentPath = FileUploadHelper::storeWithOriginalName(
+                    $request->file('attachment'),
+                    'customer_complaints'
+                );
             }
 
             $complaint->update([

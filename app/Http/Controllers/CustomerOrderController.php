@@ -12,6 +12,7 @@ use App\Models\Unit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use App\Helpers\FileUploadHelper;
 
 class CustomerOrderController extends Controller
 {
@@ -200,7 +201,10 @@ class CustomerOrderController extends Controller
 
                     $filePath = null;
                     if (isset($amendment['file']) && $amendment['file'] instanceof \Illuminate\Http\UploadedFile) {
-                        $filePath = $amendment['file']->store('customer_order_amendments', 'public');
+                        $filePath = FileUploadHelper::storeWithOriginalName(
+                            $amendment['file'],
+                            'customer_order_amendments'
+                        );
                     }
 
                     CustomerOrderAmendment::create([
@@ -415,7 +419,10 @@ class CustomerOrderController extends Controller
 
                     $filePath = null;
                     if (isset($amendment['file']) && $amendment['file'] instanceof \Illuminate\Http\UploadedFile) {
-                        $filePath = $amendment['file']->store('customer_order_amendments', 'public');
+                        $filePath = FileUploadHelper::storeWithOriginalName(
+                            $amendment['file'],
+                            'customer_order_amendments'
+                        );
                     }
 
                     CustomerOrderAmendment::create([

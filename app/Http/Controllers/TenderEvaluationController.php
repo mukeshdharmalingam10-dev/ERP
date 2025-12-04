@@ -7,6 +7,7 @@ use App\Models\TenderEvaluation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use App\Helpers\FileUploadHelper;
 
 class TenderEvaluationController extends Controller
 {
@@ -140,7 +141,10 @@ class TenderEvaluationController extends Controller
             $tenderQuery = $this->applyBranchFilter($tenderQuery, Tender::class);
             $tender = $tenderQuery->findOrFail($request->tender_id);
 
-            $path = $request->file('evaluation_document')->store('tender_evaluations', 'public');
+            $path = FileUploadHelper::storeWithOriginalName(
+                $request->file('evaluation_document'),
+                'tender_evaluations'
+            );
 
             TenderEvaluation::create([
                 'tender_id' => $tender->id,
@@ -208,7 +212,10 @@ class TenderEvaluationController extends Controller
                     Storage::disk('public')->delete($tender_evaluation->evaluation_document);
                 }
 
-                $path = $request->file('evaluation_document')->store('tender_evaluations', 'public');
+                $path = FileUploadHelper::storeWithOriginalName(
+                    $request->file('evaluation_document'),
+                    'tender_evaluations'
+                );
                 $tender_evaluation->evaluation_document = $path;
             }
 

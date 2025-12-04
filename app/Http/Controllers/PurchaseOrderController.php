@@ -15,6 +15,7 @@ use App\Models\Branch;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use App\Helpers\FileUploadHelper;
 
 class PurchaseOrderController extends Controller
 {
@@ -226,7 +227,10 @@ class PurchaseOrderController extends Controller
             $po->created_by_id = $user->id;
 
             if ($request->hasFile('upload')) {
-                $path = $request->file('upload')->store('purchase-orders', 'public');
+                $path = FileUploadHelper::storeWithOriginalName(
+                    $request->file('upload'),
+                    'purchase-orders'
+                );
                 $po->upload_path = $path;
                 $po->upload_original_name = $request->file('upload')->getClientOriginalName();
             }
@@ -460,7 +464,10 @@ class PurchaseOrderController extends Controller
                 if ($po->upload_path) {
                     Storage::disk('public')->delete($po->upload_path);
                 }
-                $path = $request->file('upload')->store('purchase-orders', 'public');
+                $path = FileUploadHelper::storeWithOriginalName(
+                    $request->file('upload'),
+                    'purchase-orders'
+                );
                 $po->upload_path = $path;
                 $po->upload_original_name = $request->file('upload')->getClientOriginalName();
             }

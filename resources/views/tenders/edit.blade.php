@@ -237,6 +237,21 @@
                         <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Tender Document Attachment</label>
                         <input type="file" name="tender_document_attachment" accept=".pdf,.doc,.docx"
                             style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
+                        @if($tender->tender_document_attachment)
+                            <div id="tender_document_existing" style="margin-top: 5px; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                                <a href="{{ asset('storage/' . $tender->tender_document_attachment) }}" target="_blank" style="color: #667eea; font-size: 12px; text-decoration: none;">
+                                    <i class="fas fa-file"></i>
+                                    <span style="margin-left: 4px;">{{ basename($tender->tender_document_attachment) }}</span>
+                                </a>
+                                <button type="button"
+                                        onclick="markDeleteTenderDocumentAttachment()"
+                                        style="border: none; background: transparent; color: #dc3545; cursor: pointer;"
+                                        title="Remove attachment">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                            <input type="hidden" name="delete_tender_document_attachment" id="delete_tender_document_attachment" value="0">
+                        @endif
                     </div>
                 </div>
                 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 15px;">
@@ -319,11 +334,19 @@
                         <input type="file" name="financial_tabulation_attachment" accept=".pdf,.doc,.docx"
                                style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
                         @if($tender->financial_tabulation_attachment)
-                            <div style="margin-top: 5px;">
-                                <a href="{{ asset('storage/' . $tender->financial_tabulation_attachment) }}" target="_blank" style="color: #667eea; font-size: 12px;">
-                                    <i class="fas fa-file-download"></i> View current file
+                            <div id="financial_tabulation_existing" style="margin-top: 5px; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                                <a href="{{ asset('storage/' . $tender->financial_tabulation_attachment) }}" target="_blank" style="color: #667eea; font-size: 12px; text-decoration: none;">
+                                    <i class="fas fa-file"></i>
+                                    <span style="margin-left: 4px;">{{ basename($tender->financial_tabulation_attachment) }}</span>
                                 </a>
+                                <button type="button"
+                                        onclick="markDeleteFinancialAttachment()"
+                                        style="border: none; background: transparent; color: #dc3545; cursor: pointer;"
+                                        title="Remove attachment">
+                                    <i class="fas fa-trash"></i>
+                                </button>
                             </div>
+                            <input type="hidden" name="delete_financial_tabulation_attachment" id="delete_financial_tabulation_attachment" value="0">
                         @endif
                     </div>
                     <div>
@@ -331,11 +354,19 @@
                         <input type="file" name="technical_spec_attachment" accept=".pdf,.doc,.docx"
                                style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
                         @if($tender->technical_spec_attachment)
-                            <div style="margin-top: 5px;">
-                                <a href="{{ asset('storage/' . $tender->technical_spec_attachment) }}" target="_blank" style="color: #667eea; font-size: 12px;">
-                                    <i class="fas fa-file-download"></i> View current file
+                            <div id="technical_spec_existing" style="margin-top: 5px; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                                <a href="{{ asset('storage/' . $tender->technical_spec_attachment) }}" target="_blank" style="color: #667eea; font-size: 12px; text-decoration: none;">
+                                    <i class="fas fa-file"></i>
+                                    <span style="margin-left: 4px;">{{ basename($tender->technical_spec_attachment) }}</span>
                                 </a>
+                                <button type="button"
+                                        onclick="markDeleteTechnicalAttachment()"
+                                        style="border: none; background: transparent; color: #dc3545; cursor: pointer;"
+                                        title="Remove attachment">
+                                    <i class="fas fa-trash"></i>
+                                </button>
                             </div>
+                            <input type="hidden" name="delete_technical_spec_attachment" id="delete_technical_spec_attachment" value="0">
                         @endif
                     </div>
                     <div>
@@ -515,6 +546,39 @@
     let financialTabulationRowCount = {{ $tender->financialTabulations->count() ?? 0 }};
     let remarkRowCount = {{ $tender->remarks->count() ?? 0 }};
     const units = @json($units);
+
+    function markDeleteTenderDocumentAttachment() {
+        const row = document.getElementById('tender_document_existing');
+        const hidden = document.getElementById('delete_tender_document_attachment');
+        if (hidden) {
+            hidden.value = '1';
+        }
+        if (row) {
+            row.style.display = 'none';
+        }
+    }
+
+    function markDeleteFinancialAttachment() {
+        const row = document.getElementById('financial_tabulation_existing');
+        const hidden = document.getElementById('delete_financial_tabulation_attachment');
+        if (hidden) {
+            hidden.value = '1';
+        }
+        if (row) {
+            row.style.display = 'none';
+        }
+    }
+
+    function markDeleteTechnicalAttachment() {
+        const row = document.getElementById('technical_spec_existing');
+        const hidden = document.getElementById('delete_technical_spec_attachment');
+        if (hidden) {
+            hidden.value = '1';
+        }
+        if (row) {
+            row.style.display = 'none';
+        }
+    }
 
     function addItemRow() {
         itemRowCount++;
