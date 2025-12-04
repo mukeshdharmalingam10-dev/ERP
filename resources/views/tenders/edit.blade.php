@@ -470,7 +470,7 @@
         </div>
 
         <!-- Submit Section -->
-        <div style="display: flex; gap: 15px; justify-content: flex-end; margin-top: 30px;">
+        <div style="display: flex; gap: 15px; justify-content: space-between; align-items: center; margin-top: 30px;">
             <a href="{{ route('tenders.index') }}" style="padding: 12px 24px; background: #6c757d; color: white; text-decoration: none; border-radius: 5px; font-weight: 500;">
                 <i class="fas fa-list"></i> List
             </a>
@@ -613,7 +613,8 @@
                     </select>
                 </td>
                 <td style="padding: 10px;">
-                    <input type="number" name="items[${itemRowCount}][price_received]" step="0.01" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
+                    <input type="number" name="items[${itemRowCount}][price_received]" step="0.01" readonly
+                           style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; background-color: #f8f9fa;">
                 </td>
                 <td style="padding: 10px;">
                     <input type="number" name="items[${itemRowCount}][price_quoted]" step="0.01" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
@@ -883,7 +884,8 @@
                         </select>
                     </td>
                     <td style="padding: 10px;">
-                        <input type="number" name="items[${itemRowCount}][price_received]" value="{{ $item->price_received }}" step="0.01" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
+                        <input type="number" name="items[${itemRowCount}][price_received]" value="{{ $item->price_received }}" step="0.01" readonly
+                               style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; background-color: #f8f9fa;">
                     </td>
                     <td style="padding: 10px;">
                         <input type="number" name="items[${itemRowCount}][price_quoted]" value="{{ $item->price_quoted }}" step="0.01" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">

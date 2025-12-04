@@ -53,32 +53,59 @@
                     <input type="date" name="order_date" value="{{ old('order_date', date('Y-m-d')) }}" required
                            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
                 </div>
+                <div>
+                    <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Customer Tender No</label>
+                    <input type="text" name="customer_tender_no" value="{{ old('customer_tender_no') }}" readonly
+                           style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; background: #f8f9fa;">
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Customer PO Date</label>
+                    <input type="date" name="customer_po_date" value="{{ old('customer_po_date') }}"
+                           style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Customer Name</label>
+                    <input type="text" name="customer_name" value="{{ old('customer_name') }}" readonly
+                           style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; background: #f8f9fa;">
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Inspection Agency</label>
+                    <input type="text" name="inspection_agency" value="{{ old('inspection_agency') }}" readonly
+                           style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; background: #f8f9fa;">
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Customer PO No</label>
+                    <input type="text" name="customer_po_no" value="{{ old('customer_po_no') }}"
+                           style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
+                </div>
             </div>
         </div>
 
         <!-- Items Section -->
         <div style="background: white; border: 1px solid #dee2e6; border-radius: 5px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-            <div style="background: #f8f9fa; padding: 15px 20px; border-bottom: 1px solid #dee2e6; border-radius: 5px 5px 0 0;">
-                <h3 style="margin: 0; color: #667eea; font-size: 18px; font-weight: 600;">Items (from Tender)</h3>
+            <div style="background: #f8f9fa; padding: 15px 20px; border-bottom: 1px solid #dee2e6; border-radius: 5px 5px 0 0; display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0; color: #667eea; font-size: 18px; font-weight: 600;">Items</h3>
+                <button type="button" onclick="addItemRow()" style="padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 5px; font-size: 14px; cursor: pointer; font-weight: 500;">
+                    <i class="fas fa-plus"></i> Add Item
+                </button>
             </div>
             <div style="padding: 20px; overflow-x: auto;">
                 <table style="width: 100%; border-collapse: collapse;">
                     <thead>
                         <tr style="background: #f8f9fa; border-bottom: 2px solid #dee2e6;">
-                            <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Title</th>
-                            <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Description</th>
-                            <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">PL Code</th>
-                            <th style="padding: 12px; text-align: right; color: #333; font-weight: 600;">Quantity</th>
-                            <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Unit</th>
-                            <th style="padding: 12px; text-align: right; color: #333; font-weight: 600;">Price per Qty <span style="color:red;">*</span></th>
-                            <th style="padding: 12px; text-align: right; color: #333; font-weight: 600;">Installation</th>
-                            <th style="padding: 12px; text-align: right; color: #333; font-weight: 600;">Amount</th>
+                            <th style="padding: 12px; text-align: left; color: #333; font-weight: 600; width: 20%;">Product Name <span style="color:red;">*</span></th>
+                            <th style="padding: 12px; text-align: left; color: #333; font-weight: 600; width: 25%;">Description</th>
+                            <th style="padding: 12px; text-align: left; color: #333; font-weight: 600; width: 10%;">Unit <span style="color:red;">*</span></th>
+                            <th style="padding: 12px; text-align: right; color: #333; font-weight: 600; width: 12%;">Quantity <span style="color:red;">*</span></th>
+                            <th style="padding: 12px; text-align: right; color: #333; font-weight: 600; width: 15%;">Price per Qty <span style="color:red;">*</span></th>
+                            <th style="padding: 12px; text-align: right; color: #333; font-weight: 600; width: 12%;">Amount</th>
+                            <th style="padding: 12px; text-align: center; color: #333; font-weight: 600; width: 6%;">Action</th>
                         </tr>
                     </thead>
                     <tbody id="itemsBody">
                         <tr>
-                            <td colspan="8" style="padding: 12px; text-align: center; color: #777;">
-                                Select a Tender to load items.
+                            <td colspan="7" style="padding: 12px; text-align: center; color: #777;">
+                                Click "Add Item" to add products.
                             </td>
                         </tr>
                     </tbody>
@@ -282,72 +309,120 @@
 
 @push('scripts')
 <script>
-    const tendersData = @json($tendersData);
+    const tendersMeta = @json($tendersMeta);
     const units = @json($unitsData);
+    const products = @json($productsData);
 
+    let itemIndexCounter = 0;
     let selectedItemIndex = null; // index into items array for schedule/amendment
     let schedules = []; // { item_index, product_name, po_sr_no, ordered_qty, quantity, unit_id, unit_symbol, start_date, end_date, inspection_clause }
     let amendments = []; // { item_index, product_name, po_sr_no, ordered_qty, amendment_no, amendment_date, existing_quantity, new_quantity, remarks }
 
     document.getElementById('tender_id').addEventListener('change', function () {
         const tenderId = this.value;
+
+        // Auto-populate header fields from selected tender (if data available)
+        const meta = tendersMeta[tenderId] || {};
+        const customerTenderInput = document.querySelector('input[name="customer_tender_no"]');
+        const customerPoNoInput = document.querySelector('input[name="customer_po_no"]');
+        const customerPoDateInput = document.querySelector('input[name="customer_po_date"]');
+        const customerNameInput = document.querySelector('input[name="customer_name"]');
+        const inspectionAgencyInput = document.querySelector('input[name="inspection_agency"]');
+
+        if (customerTenderInput) {
+            customerTenderInput.value = meta.customer_tender_no || '';
+        }
+        if (customerPoNoInput) {
+            customerPoNoInput.value = meta.customer_po_no || '';
+        }
+        if (customerPoDateInput) {
+            customerPoDateInput.value = meta.customer_po_date || '';
+        }
+        if (customerNameInput) {
+            customerNameInput.value = meta.customer_name || '';
+        }
+        if (inspectionAgencyInput) {
+            inspectionAgencyInput.value = meta.inspection_agency || '';
+        }
+    });
+
+    function addItemRow() {
         const tbody = document.getElementById('itemsBody');
-        tbody.innerHTML = '';
-        if (!tenderId || !tendersData[tenderId] || tendersData[tenderId].length === 0) {
-            tbody.innerHTML = `<tr><td colspan="9" style="padding: 12px; text-align: center; color: #777;">No items found for this tender.</td></tr>`;
-            return;
+        const index = itemIndexCounter++;
+        
+        // Remove empty message if present
+        if (tbody.querySelector('tr td[colspan]')) {
+            tbody.innerHTML = '';
         }
 
-        tendersData[tenderId].forEach((item, index) => {
-            const row = document.createElement('tr');
-            row.style.borderBottom = '1px solid #dee2e6';
-            row.innerHTML = `
-                <td style="padding: 10px;">
-                    <input type="text" name="items[${index}][title]" value="${item.title}" 
-                           style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 13px;">
-                    <a href="#" onclick="toggleShowMore('title_${index}'); return false;" 
-                       style="font-size: 12px; color: #667eea; text-decoration: none; margin-top: 4px; display: block;">Show More</a>
-                    <div id="title_${index}_full" style="display: none; margin-top: 5px; padding: 8px; background: #f8f9fa; border-radius: 5px; font-size: 13px;">${item.title}</div>
-                </td>
-                <td style="padding: 10px;">
-                    <textarea name="items[${index}][description]" rows="2" placeholder="Enter text here"
-                              style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 13px;">${item.description || ''}</textarea>
-                    <a href="#" onclick="toggleShowMore('desc_${index}'); return false;" 
-                       style="font-size: 12px; color: #667eea; text-decoration: none; margin-top: 4px; display: block;">Show More</a>
-                    <div id="desc_${index}_full" style="display: none; margin-top: 5px; padding: 8px; background: #f8f9fa; border-radius: 5px; font-size: 13px; white-space: pre-wrap;">${item.description || ''}</div>
-                </td>
-                <td style="padding: 10px;">
-                    <input type="text" name="items[${index}][pl_code]" value="${item.pl_code || ''}" readonly
-                           style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 13px; background:#f8f9fa;">
-                    <input type="hidden" name="items[${index}][tender_item_id]" value="${item.id}">
-                    <input type="hidden" name="items[${index}][po_sr_no]" value="">
-                </td>
-                <td style="padding: 10px; text-align: right;">
-                    <input type="number" name="items[${index}][ordered_qty]" value="${item.qty}" step="0.01" min="0"
-                           oninput="recalcItemAmount(${index})"
-                           style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 13px; text-align: right;">
-                </td>
-                <td style="padding: 10px; color: #333;">${item.unit || ''}</td>
-                <td style="padding: 10px; text-align: right;">
-                    <input type="number" name="items[${index}][unit_price]" value="${item.price || 0}" step="0.01" min="0"
-                           oninput="recalcItemAmount(${index})"
-                           style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 13px; text-align: right;">
-                </td>
-                <td style="padding: 10px; text-align: right;">
-                    <input type="number" name="items[${index}][installation_charges]" value="0" step="0.01" min="0"
-                           oninput="recalcItemAmount(${index})"
-                           style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 13px; text-align: right;">
-                </td>
-                <td style="padding: 10px; text-align: right; color:#333;">
-                    <span id="item_amount_display_${index}">0.00</span>
-                    <input type="hidden" name="items[${index}][line_amount]" id="item_amount_${index}" value="0">
-                </td>
-            `;
-            tbody.appendChild(row);
-            // initialize amount based on default values
-            recalcItemAmount(index);
-        });
-    });
+        const row = document.createElement('tr');
+        row.style.borderBottom = '1px solid #dee2e6';
+        row.innerHTML = `
+            <td style="padding: 10px;">
+                <select name="items[${index}][product_id]" id="product_${index}" required
+                        onchange="onProductSelect(${index})"
+                        style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 13px;">
+                    <option value="">Select Product</option>
+                    ${products.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
+                </select>
+            </td>
+            <td style="padding: 10px;">
+                <textarea name="items[${index}][description]" rows="2" placeholder="Enter description"
+                          style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 13px;"></textarea>
+            </td>
+            <td style="padding: 10px;">
+                <input type="text" name="items[${index}][unit_symbol]" id="unit_symbol_${index}" readonly
+                       style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 13px; background:#f8f9fa;">
+                <input type="hidden" name="items[${index}][unit_id]" id="unit_id_${index}" value="">
+            </td>
+            <td style="padding: 10px; text-align: right;">
+                <input type="number" name="items[${index}][ordered_qty]" value="0" step="0.01" min="0.01" required
+                       oninput="recalcItemAmount(${index})"
+                       style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 13px; text-align: right;">
+            </td>
+            <td style="padding: 10px; text-align: right;">
+                <input type="number" name="items[${index}][unit_price]" value="0" step="0.01" min="0" required
+                       oninput="recalcItemAmount(${index})"
+                       style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 13px; text-align: right;">
+            </td>
+            <td style="padding: 10px; text-align: right; color:#333;">
+                <span id="item_amount_display_${index}">0.00</span>
+                <input type="hidden" name="items[${index}][line_amount]" id="item_amount_${index}" value="0">
+            </td>
+            <td style="padding: 10px; text-align: center;">
+                <button type="button" onclick="removeItemRow(this)" style="padding: 5px 10px; background: #dc3545; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 12px;">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(row);
+    }
+
+    function onProductSelect(index) {
+        const productSelect = document.getElementById(`product_${index}`);
+        const productId = productSelect.value;
+        const product = products.find(p => p.id == productId);
+        
+        if (product) {
+            document.getElementById(`unit_id_${index}`).value = product.unit_id;
+            document.getElementById(`unit_symbol_${index}`).value = product.unit_symbol;
+        } else {
+            document.getElementById(`unit_id_${index}`).value = '';
+            document.getElementById(`unit_symbol_${index}`).value = '';
+        }
+        recalcItemAmount(index);
+    }
+
+    function removeItemRow(button) {
+        const row = button.closest('tr');
+        row.remove();
+        
+        const tbody = document.getElementById('itemsBody');
+        if (tbody.children.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" style="padding: 12px; text-align: center; color: #777;">Click "Add Item" to add products.</td></tr>`;
+        }
+        recalculateTotal();
+    }
 
     function onItemSelected(index) {
         selectedItemIndex = index;
@@ -356,56 +431,67 @@
     function getSelectedItem() {
         // Option 1: User selected a row - return that item
         if (selectedItemIndex !== null) {
-        const tenderId = document.getElementById('tender_id').value;
-        if (!tenderId || !tendersData[tenderId]) {
-            alert('Please select a Tender first.');
-            return null;
-        }
-        const item = tendersData[tenderId][selectedItemIndex];
-        if (!item) {
-            alert('Invalid product selection.');
-            return null;
-        }
+            const productSelect = document.querySelector(`select[name="items[${selectedItemIndex}][product_id]"]`);
             const qtyInput = document.querySelector(`input[name="items[${selectedItemIndex}][ordered_qty]"]`);
-        const poInput = document.querySelector(`input[name="items[${selectedItemIndex}][po_sr_no]"]`);
-        return {
-            index: selectedItemIndex,
-            product_name: item.title,
-            po_sr_no: poInput ? poInput.value : '',
-            ordered_qty: parseFloat(qtyInput ? qtyInput.value : '0') || 0,
-            unit_symbol: item.unit || '',
-        };
+            const unitSymbolInput = document.querySelector(`input[name="items[${selectedItemIndex}][unit_symbol]"]`);
+            
+            if (!productSelect || !productSelect.value) {
+                alert('Please select a product first.');
+                return null;
+            }
+            
+            const product = products.find(p => p.id == productSelect.value);
+            if (!product) {
+                alert('Invalid product selection.');
+                return null;
+            }
+            
+            return {
+                index: selectedItemIndex,
+                product_name: product.name,
+                po_sr_no: '',
+                ordered_qty: parseFloat(qtyInput ? qtyInput.value : '0') || 0,
+                unit_symbol: unitSymbolInput ? unitSymbolInput.value : product.unit_symbol,
+            };
         }
         // Option 2: No row selected - return null to show dropdown in modal
         return null;
     }
 
     function getAvailableItems() {
-        const tenderId = document.getElementById('tender_id').value;
-        if (!tenderId || !tendersData[tenderId]) {
-            return [];
-        }
-        return tendersData[tenderId].map((item, index) => {
-            const qtyInput = document.querySelector(`input[name="items[${index}][ordered_qty]"]`);
-            const poInput = document.querySelector(`input[name="items[${index}][po_sr_no]"]`);
-            return {
-                index: index,
-                product_name: item.title,
-                po_sr_no: poInput ? poInput.value : '',
-                ordered_qty: parseFloat(qtyInput ? qtyInput.value : '0') || 0,
-                unit_symbol: item.unit || '',
-            };
+        const tbody = document.getElementById('itemsBody');
+        const rows = tbody.querySelectorAll('tr');
+        const availableItems = [];
+        
+        rows.forEach((row, index) => {
+            const productSelect = row.querySelector(`select[name="items[${index}][product_id]"]`);
+            const qtyInput = row.querySelector(`input[name="items[${index}][ordered_qty]"]`);
+            const unitSymbolInput = row.querySelector(`input[name="items[${index}][unit_symbol]"]`);
+            
+            if (productSelect && productSelect.value) {
+                const product = products.find(p => p.id == productSelect.value);
+                if (product) {
+                    availableItems.push({
+                        index: index,
+                        product_name: product.name,
+                        po_sr_no: '',
+                        ordered_qty: parseFloat(qtyInput ? qtyInput.value : '0') || 0,
+                        unit_symbol: unitSymbolInput ? unitSymbolInput.value : product.unit_symbol,
+                    });
+                }
+            }
         });
+        
+        return availableItems;
     }
 
     function openSchedulePopup() {
-        const tenderId = document.getElementById('tender_id').value;
-        if (!tenderId) {
-            alert('Please select a Tender first.');
-            return;
-        }
         const item = getSelectedItem(); // May be null if no row selected
         const availableItems = getAvailableItems();
+        if (availableItems.length === 0) {
+            alert('Please add at least one product item first.');
+            return;
+        }
         window.CustomerOrderScheduleModal.open(item, availableItems, schedules, units, function (updatedSchedules) {
             schedules = updatedSchedules;
             renderSchedules();
@@ -414,13 +500,12 @@
     }
 
     function openAmendmentPopup() {
-        const tenderId = document.getElementById('tender_id').value;
-        if (!tenderId) {
-            alert('Please select a Tender first.');
-            return;
-        }
         const item = getSelectedItem(); // May be null if no row selected
         const availableItems = getAvailableItems();
+        if (availableItems.length === 0) {
+            alert('Please add at least one product item first.');
+            return;
+        }
         window.CustomerOrderAmendmentModal.open(item, availableItems, amendments, function (updatedAmendments) {
             amendments = updatedAmendments;
             renderAmendments();
@@ -513,15 +598,17 @@
     function recalcItemAmount(index) {
         const qtyInput = document.querySelector(`input[name="items[${index}][ordered_qty]"]`);
         const priceInput = document.querySelector(`input[name="items[${index}][unit_price]"]`);
-        const instInput = document.querySelector(`input[name="items[${index}][installation_charges]"]`);
         const qty = parseFloat(qtyInput ? qtyInput.value : '0') || 0;
         const price = parseFloat(priceInput ? priceInput.value : '0') || 0;
-        const inst = parseFloat(instInput ? instInput.value : '0') || 0;
-        const amount = qty * price + inst;
+        const amount = qty * price;
         const amountField = document.getElementById(`item_amount_${index}`);
         const amountDisplay = document.getElementById(`item_amount_display_${index}`);
         if (amountField) amountField.value = amount.toFixed(2);
         if (amountDisplay) amountDisplay.textContent = amount.toFixed(2);
+        recalculateTax();
+    }
+
+    function recalculateTotal() {
         recalculateTax();
     }
 

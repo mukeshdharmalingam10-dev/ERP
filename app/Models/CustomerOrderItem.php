@@ -12,6 +12,8 @@ class CustomerOrderItem extends Model
     protected $fillable = [
         'customer_order_id',
         'tender_item_id',
+        'product_id',
+        'unit_id',
         'po_sr_no',
         'ordered_qty',
         'description',
@@ -36,6 +38,16 @@ class CustomerOrderItem extends Model
     public function tenderItem()
     {
         return $this->belongsTo(TenderItem::class);
+    }
+
+    public function product()
+    {
+        return $this->belongsTo(Product::class);
+    }
+
+    public function unit()
+    {
+        return $this->belongsTo(Unit::class);
     }
 
     public function schedules()

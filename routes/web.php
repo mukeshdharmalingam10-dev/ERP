@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 /*
 |--------------------------------------------------------------------------
@@ -130,6 +132,186 @@ Route::middleware(['auth'])->group(function () {
 
     // Customer Orders (Tender Module)
     Route::resource('customer-orders', App\Http\Controllers\CustomerOrderController::class);
+    Route::post('customer-orders/{id}/approve', [App\Http\Controllers\CustomerOrderController::class, 'approve'])->name('customer-orders.approve');
+    
+    // Check approval tables status (temporary - remove after testing)
+    Route::get('/check-approval-tables', function() {
+        $user = auth()->user();
+        if (!$user || !$user->isSuperAdmin()) {
+            abort(403);
+        }
+        
+        $results = [];
+        $results['approval_masters'] = \Illuminate\Support\Facades\Schema::hasTable('approval_masters');
+        $results['approval_mappings'] = \Illuminate\Support\Facades\Schema::hasTable('approval_mappings');
+        
+        if (\Illuminate\Support\Facades\Schema::hasTable('customer_orders')) {
+            $results['customer_orders.approval_status'] = \Illuminate\Support\Facades\Schema::hasColumn('customer_orders', 'approval_status');
+            $results['customer_orders.approved_by'] = \Illuminate\Support\Facades\Schema::hasColumn('customer_orders', 'approved_by');
+        }
+        
+        $html = '<h2>Approval Tables Status</h2><ul>';
+        foreach ($results as $key => $exists) {
+            $html .= '<li>' . $key . ': ' . ($exists ? '<span style="color:green">✓ EXISTS</span>' : '<span style="color:red">✗ NOT FOUND</span>') . '</li>';
+        }
+        $html .= '</ul>';
+        
+        if (!$results['approval_masters']) {
+            $html .= '<p style="color:red;"><strong>Action Required:</strong> Run: <code>php artisan migrate</code></p>';
+        }
+        
+        return $html;
+    })->name('check-approval-tables');
+
+    // Test approval notification (temporary - remove after testing)
+    Route::get('/test-approval-notification', function() {
+        $user = auth()->user();
+        if (!$user || !$user->isSuperAdmin()) {
+            abort(403);
+        }
+        
+        $order = \App\Models\CustomerOrder::latest()->first();
+        if (!$order) {
+            return 'No customer order found to test with.';
+        }
+        
+        try {
+            $user->notify(new \App\Notifications\CustomerOrderApprovalRequest($order));
+            return 'Test notification sent successfully! Check your notifications.';
+        } catch (\Exception $e) {
+            return 'Error: ' . $e->getMessage() . '<br>Stack: ' . $e->getTraceAsString();
+        }
+    })->name('test-approval-notification');
+
+    // Temporary route to make special_instructions nullable (remove after use)
+    Route::get('/fix-special-instructions-nullable', function() {
+        try {
+            DB::statement("ALTER TABLE `purchase_indent_items` MODIFY COLUMN `special_instructions` TEXT NULL");
+            echo "special_instructions column is now nullable!<br>";
+        } catch (\Exception $e) {
+            if (strpos($e->getMessage(), 'Duplicate') !== false) {
+                echo "Column already nullable.<br>";
+            } else {
+                echo "Error: " . $e->getMessage() . "<br>";
+            }
+        }
+        
+        echo "<br>Done! You can now try creating a Purchase Indent again.";
+    })->name('fix-special-instructions-nullable');
+
+    // Temporary route to add status column (remove after use)
+    Route::get('/add-status-column', function() {
+        try {
+            DB::statement("ALTER TABLE `customer_orders` ADD COLUMN `status` VARCHAR(255) NOT NULL DEFAULT 'Pending'");
+            echo "Status column added successfully!<br>";
+        } catch (\Exception $e) {
+            if (strpos($e->getMessage(), 'Duplicate column name') !== false) {
+                echo "Status column already exists.<br>";
+            } else {
+                echo "Error adding status column: " . $e->getMessage() . "<br>";
+            }
+        }
+
+        try {
+            DB::statement("ALTER TABLE `customer_orders` ADD COLUMN `updated_by_id` BIGINT UNSIGNED NULL");
+            echo "updated_by_id column added successfully!<br>";
+        } catch (\Exception $e) {
+            if (strpos($e->getMessage(), 'Duplicate column name') !== false) {
+                echo "updated_by_id column already exists.<br>";
+            } else {
+                echo "Error adding updated_by_id column: " . $e->getMessage() . "<br>";
+            }
+        }
+
+        try {
+            DB::statement("ALTER TABLE `customer_orders` ADD CONSTRAINT `customer_orders_updated_by_id_foreign` FOREIGN KEY (`updated_by_id`) REFERENCES `users` (`id`) ON DELETE SET NULL");
+            echo "Foreign key added successfully!<br>";
+        } catch (\Exception $e) {
+            if (strpos($e->getMessage(), 'Duplicate key name') !== false || strpos($e->getMessage(), 'already exists') !== false) {
+                echo "Foreign key already exists.<br>";
+            } else {
+                echo "Error adding foreign key: " . $e->getMessage() . "<br>";
+            }
+        }
+        
+        echo "<br>Done! You can now try creating a Customer Order again.";
+    })->name('add-status-column');
+
+    // Temporary route to fix customer_order_items table (remove after use)
+    Route::get('/fix-customer-order-items', function() {
+        try {
+            // Make tender_item_id nullable first
+            try {
+                // Drop foreign key if exists
+                DB::statement('ALTER TABLE customer_order_items DROP FOREIGN KEY customer_order_items_tender_item_id_foreign');
+            } catch (\Exception $e) {
+                // Ignore if doesn't exist
+            }
+            
+            // Make column nullable
+            DB::statement('ALTER TABLE customer_order_items MODIFY tender_item_id BIGINT UNSIGNED NULL');
+            echo "tender_item_id made nullable<br>";
+            
+            // Re-add foreign key
+            try {
+                DB::statement('ALTER TABLE customer_order_items ADD CONSTRAINT customer_order_items_tender_item_id_foreign FOREIGN KEY (tender_item_id) REFERENCES tender_items(id) ON DELETE CASCADE');
+                echo "Foreign key for tender_item_id re-added<br>";
+            } catch (\Exception $e) {
+                echo "Foreign key for tender_item_id: " . $e->getMessage() . "<br>";
+            }
+            
+            if (!Schema::hasColumn('customer_order_items', 'product_id')) {
+                DB::statement('ALTER TABLE customer_order_items ADD COLUMN product_id BIGINT UNSIGNED NULL AFTER tender_item_id');
+                echo "product_id column added<br>";
+            } else {
+                echo "product_id column already exists<br>";
+            }
+            
+            if (!Schema::hasColumn('customer_order_items', 'unit_id')) {
+                DB::statement('ALTER TABLE customer_order_items ADD COLUMN unit_id BIGINT UNSIGNED NULL AFTER product_id');
+                echo "unit_id column added<br>";
+            } else {
+                echo "unit_id column already exists<br>";
+            }
+            
+            // Add foreign keys
+            try {
+                $fkExists = DB::select("SELECT CONSTRAINT_NAME FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'customer_order_items' AND CONSTRAINT_NAME = 'customer_order_items_product_id_foreign'");
+                if (empty($fkExists)) {
+                    DB::statement('ALTER TABLE customer_order_items ADD CONSTRAINT customer_order_items_product_id_foreign FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE');
+                    echo "Foreign key for product_id added<br>";
+                } else {
+                    echo "Foreign key for product_id already exists<br>";
+                }
+            } catch (\Exception $e) {
+                echo "Foreign key for product_id: " . $e->getMessage() . "<br>";
+            }
+            
+            try {
+                $fkExists = DB::select("SELECT CONSTRAINT_NAME FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'customer_order_items' AND CONSTRAINT_NAME = 'customer_order_items_unit_id_foreign'");
+                if (empty($fkExists)) {
+                    DB::statement('ALTER TABLE customer_order_items ADD CONSTRAINT customer_order_items_unit_id_foreign FOREIGN KEY (unit_id) REFERENCES units(id) ON DELETE SET NULL');
+                    echo "Foreign key for unit_id added<br>";
+                } else {
+                    echo "Foreign key for unit_id already exists<br>";
+                }
+            } catch (\Exception $e) {
+                echo "Foreign key for unit_id: " . $e->getMessage() . "<br>";
+            }
+            
+            echo "<br>Done! You can now try creating a Customer Order again.";
+        } catch (\Exception $e) {
+            echo "Error: " . $e->getMessage();
+        }
+    })->name('fix-customer-order-items');
+
+    // Approval System Routes
+    Route::prefix('approvals')->name('approvals.')->group(function () {
+        Route::get('/', [App\Http\Controllers\ApprovalController::class, 'index'])->name('index');
+        Route::post('/{form}/{id}/approve', [App\Http\Controllers\ApprovalController::class, 'approve'])->name('approve');
+        Route::post('/{form}/{id}/reject', [App\Http\Controllers\ApprovalController::class, 'reject'])->name('reject');
+    });
+
 
     // Tender Evaluation Routes
     Route::resource('tender-evaluations', App\Http\Controllers\TenderEvaluationController::class);

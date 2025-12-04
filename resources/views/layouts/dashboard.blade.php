@@ -127,6 +127,23 @@
         .sidebar-menu::-webkit-scrollbar-thumb:hover {
             background: rgba(255,255,255,0.3);
         }
+
+        /* Simple inline loader for submit buttons */
+        .btn-loading-spinner {
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #ffffff;
+            border-radius: 50%;
+            width: 14px;
+            height: 14px;
+            margin-right: 6px;
+            display: inline-block;
+            vertical-align: middle;
+            animation: btn-spin 0.6s linear infinite;
+        }
+
+        @keyframes btn-spin {
+            to { transform: rotate(360deg); }
+        }
         .menu-item-header {
             padding: 12px 20px;
             font-size: 13px;
@@ -411,6 +428,12 @@
                             <i class="fas fa-clipboard-check"></i>
                             <span>Tender Evaluation</span>
                         </a>
+                        @if(auth()->user()->isSuperAdmin() || auth()->user()->hasPermission('approvals', 'view'))
+                        <a href="{{ route('approvals.index', ['form' => 'customer_orders']) }}" class="menu-item" title="Pending Approvals">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Pending Approvals</span>
+                        </a>
+                        @endif
                         <a href="{{ route('customer-complaints.index') }}" class="menu-item" title="Customer Complaint Register">
                             <i class="fas fa-exclamation-circle"></i>
                             <span>Customer Complaint Register</span>
@@ -930,35 +953,34 @@
                 });
             }
 
-            // Add a Remove button next to every file input so users can clear selected files
-            document.querySelectorAll('input[type="file"]').forEach(function (input, index) {
-                // Avoid adding the button twice if DOMContentLoaded fires after ajax/partial loads
-                if (input.dataset.hasRemoveButton === 'true') {
-                    return;
-                }
-                input.dataset.hasRemoveButton = 'true';
+            // Global form submit loader to prevent double submits and show progress
+            document.querySelectorAll('form').forEach(function (form) {
+                form.addEventListener('submit', function (e) {
+                    // Prevent double submission
+                    if (form.dataset.submitting === 'true') {
+                        e.preventDefault();
+                        return;
+                    }
+                    form.dataset.submitting = 'true';
 
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                btn.textContent = 'Remove';
-                btn.style.marginLeft = '10px';
-                btn.style.padding = '6px 12px';
-                btn.style.backgroundColor = '#dc3545';
-                btn.style.color = '#fff';
-                btn.style.border = 'none';
-                btn.style.borderRadius = '4px';
-                btn.style.fontSize = '12px';
-                btn.style.cursor = 'pointer';
+                    const submitButtons = form.querySelectorAll('button[type="submit"], input[type="submit"]');
+                    submitButtons.forEach(function (btn) {
+                        // Skip if already processed
+                        if (btn.dataset.loadingApplied === 'true') {
+                            return;
+                        }
+                        btn.dataset.loadingApplied = 'true';
+                        btn.disabled = true;
 
-                btn.addEventListener('click', function () {
-                    // Clear the currently selected file
-                    input.value = '';
+                        if (btn.tagName === 'BUTTON') {
+                            btn.dataset.originalHtml = btn.innerHTML;
+                            btn.innerHTML = '<span class="btn-loading-spinner"></span>Submitting...';
+                        } else if (btn.tagName === 'INPUT') {
+                            btn.dataset.originalValue = btn.value;
+                            btn.value = 'Submitting...';
+                        }
+                    });
                 });
-
-                // Insert button right after the file input
-                if (input.parentNode) {
-                    input.parentNode.insertBefore(btn, input.nextSibling);
-                }
             });
         });
     </script>

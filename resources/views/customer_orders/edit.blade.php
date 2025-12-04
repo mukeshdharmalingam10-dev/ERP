@@ -53,26 +53,53 @@
                     <input type="date" name="order_date" value="{{ old('order_date', optional($order->order_date)->format('Y-m-d')) }}" required
                            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
                 </div>
+                <div>
+                    <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Customer Tender No</label>
+                    <input type="text" name="customer_tender_no" value="{{ old('customer_tender_no', $order->customer_tender_no) }}"
+                           style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Customer PO Date</label>
+                    <input type="date" name="customer_po_date" value="{{ old('customer_po_date', optional($order->customer_po_date)->format('Y-m-d')) }}"
+                           style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Customer Name</label>
+                    <input type="text" name="customer_name" value="{{ old('customer_name', optional($order->tender->company)->company_name ?? '') }}"
+                           style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Inspection Agency</label>
+                    <input type="text" name="inspection_agency" value="{{ old('inspection_agency', $order->inspection_agency) }}"
+                           style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Customer PO No</label>
+                    <input type="text" name="customer_po_no" value="{{ old('customer_po_no', $order->customer_po_no) }}"
+                           style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
+                </div>
             </div>
         </div>
 
         <!-- Items Section -->
         <div style="background: white; border: 1px solid #dee2e6; border-radius: 5px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-            <div style="background: #f8f9fa; padding: 15px 20px; border-bottom: 1px solid #dee2e6; border-radius: 5px 5px 0 0;">
-                <h3 style="margin: 0; color: #667eea; font-size: 18px; font-weight: 600;">Items (from Tender)</h3>
+            <div style="background: #f8f9fa; padding: 15px 20px; border-bottom: 1px solid #dee2e6; border-radius: 5px 5px 0 0; display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0; color: #667eea; font-size: 18px; font-weight: 600;">Items</h3>
+                <button type="button" onclick="addItemRow()" style="padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 5px; font-size: 14px; cursor: pointer; font-weight: 500;">
+                    <i class="fas fa-plus"></i> Add Item
+                </button>
             </div>
             <div style="padding: 20px; overflow-x: auto;">
                 <table style="width: 100%; border-collapse: collapse;">
                     <thead>
                         <tr style="background: #f8f9fa; border-bottom: 2px solid #dee2e6;">
-                            <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Title</th>
-                            <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Description</th>
-                            <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">PL Code</th>
-                            <th style="padding: 12px; text-align: right; color: #333; font-weight: 600;">Quantity</th>
-                            <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Unit</th>
-                            <th style="padding: 12px; text-align: right; color: #333; font-weight: 600;">Price per Qty <span style="color:red;">*</span></th>
-                            <th style="padding: 12px; text-align: right; color: #333; font-weight: 600;">Installation</th>
-                            <th style="padding: 12px; text-align: right; color: #333; font-weight: 600;">Amount</th>
+                            <th style="padding: 12px; text-align: left; color: #333; font-weight: 600; width: 20%;">Product Name <span style="color:red;">*</span></th>
+                            <th style="padding: 12px; text-align: left; color: #333; font-weight: 600; width: 25%;">Description</th>
+                            <th style="padding: 12px; text-align: left; color: #333; font-weight: 600; width: 10%;">Unit <span style="color:red;">*</span></th>
+                            <th style="padding: 12px; text-align: right; color: #333; font-weight: 600; width: 12%;">Quantity <span style="color:red;">*</span></th>
+                            <th style="padding: 12px; text-align: right; color: #333; font-weight: 600; width: 15%;">Price per Qty <span style="color:red;">*</span></th>
+                            <th style="padding: 12px; text-align: right; color: #333; font-weight: 600; width: 12%;">Amount</th>
+                            <th style="padding: 12px; text-align: center; color: #333; font-weight: 600; width: 6%;">Action</th>
                         </tr>
                     </thead>
                     <tbody id="itemsBody">
@@ -82,49 +109,57 @@
                         @foreach($items as $index => $orderItem)
                             <tr style="border-bottom: 1px solid #dee2e6;">
                                 <td style="padding: 10px;">
-                                    <input type="text" name="items[{{ $index }}][title]" value="{{ optional($orderItem->tenderItem)->title }}" 
-                                           style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 13px;">
-                                    <a href="#" onclick="toggleShowMore('title_{{ $index }}'); return false;" 
-                                       style="font-size: 12px; color: #667eea; text-decoration: none; margin-top: 4px; display: block;">Show More</a>
-                                    <div id="title_{{ $index }}_full" style="display: none; margin-top: 5px; padding: 8px; background: #f8f9fa; border-radius: 5px; font-size: 13px;">{{ optional($orderItem->tenderItem)->title }}</div>
+                                    <select name="items[{{ $index }}][product_id]" id="product_{{ $index }}" required
+                                            onchange="onProductSelect({{ $index }})"
+                                            style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 13px;">
+                                        <option value="">Select Product</option>
+                                        @foreach($products as $product)
+                                            <option value="{{ $product->id }}" {{ $orderItem->product_id == $product->id ? 'selected' : '' }}>
+                                                {{ $product->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
                                 </td>
                                 <td style="padding: 10px;">
-                                    <textarea name="items[{{ $index }}][description]" rows="2" placeholder="Enter text here"
+                                    <textarea name="items[{{ $index }}][description]" rows="2" placeholder="Enter description"
                                               style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 13px;">{{ $orderItem->description }}</textarea>
-                                    <a href="#" onclick="toggleShowMore('desc_{{ $index }}'); return false;" 
-                                       style="font-size: 12px; color: #667eea; text-decoration: none; margin-top: 4px; display: block;">Show More</a>
-                                    <div id="desc_{{ $index }}_full" style="display: none; margin-top: 5px; padding: 8px; background: #f8f9fa; border-radius: 5px; font-size: 13px; white-space: pre-wrap;">{{ $orderItem->description }}</div>
                                 </td>
                                 <td style="padding: 10px;">
-                                    <input type="text" name="items[{{ $index }}][pl_code]" value="{{ $orderItem->pl_code ?? optional($orderItem->tenderItem)->pl_code }}"
-                                           readonly
+                                    <input type="text" name="items[{{ $index }}][unit_symbol]" id="unit_symbol_{{ $index }}" 
+                                           value="{{ optional($orderItem->unit)->symbol ?? optional($orderItem->product->unit)->symbol ?? '' }}" readonly
                                            style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 13px; background:#f8f9fa;">
-                                    <input type="hidden" name="items[{{ $index }}][tender_item_id]" value="{{ $orderItem->tender_item_id }}">
-                                    <input type="hidden" name="items[{{ $index }}][po_sr_no]" value="{{ $orderItem->po_sr_no }}">
+                                    <input type="hidden" name="items[{{ $index }}][unit_id]" id="unit_id_{{ $index }}" 
+                                           value="{{ $orderItem->unit_id ?? optional($orderItem->product)->unit_id ?? '' }}">
                                 </td>
                                 <td style="padding: 10px; text-align: right;">
-                                    <input type="number" name="items[{{ $index }}][ordered_qty]" value="{{ $orderItem->ordered_qty }}" step="0.01" min="0"
-                                           oninput="recalcItemAmount({{ $index }})"
-                                           style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 13px; text-align: right;">
-                                </td>
-                                <td style="padding: 10px; color: #333;">{{ optional(optional($orderItem->tenderItem)->unit)->symbol }}</td>
-                                <td style="padding: 10px; text-align: right;">
-                                    <input type="number" name="items[{{ $index }}][unit_price]" value="{{ $orderItem->unit_price }}" step="0.01" min="0"
+                                    <input type="number" name="items[{{ $index }}][ordered_qty]" value="{{ $orderItem->ordered_qty }}" step="0.01" min="0.01" required
                                            oninput="recalcItemAmount({{ $index }})"
                                            style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 13px; text-align: right;">
                                 </td>
                                 <td style="padding: 10px; text-align: right;">
-                                    <input type="number" name="items[{{ $index }}][installation_charges]" value="{{ $orderItem->installation_charges }}" step="0.01" min="0"
+                                    <input type="number" name="items[{{ $index }}][unit_price]" value="{{ $orderItem->unit_price }}" step="0.01" min="0" required
                                            oninput="recalcItemAmount({{ $index }})"
                                            style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 13px; text-align: right;">
                                 </td>
                                 <td style="padding: 10px; text-align: right; color:#333;">
-                                    @php $amount = $orderItem->line_amount ?? ($orderItem->ordered_qty * $orderItem->unit_price + $orderItem->installation_charges); @endphp
+                                    @php $amount = $orderItem->line_amount ?? ($orderItem->ordered_qty * $orderItem->unit_price); @endphp
                                     <span id="item_amount_display_{{ $index }}">{{ number_format($amount, 2) }}</span>
                                     <input type="hidden" name="items[{{ $index }}][line_amount]" id="item_amount_{{ $index }}" value="{{ $amount }}">
                                 </td>
+                                <td style="padding: 10px; text-align: center;">
+                                    <button type="button" onclick="removeItemRow(this)" style="padding: 5px 10px; background: #dc3545; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 12px;">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
                             </tr>
                         @endforeach
+                        @if($items->isEmpty())
+                            <tr>
+                                <td colspan="7" style="padding: 12px; text-align: center; color: #777;">
+                                    Click "Add Item" to add products.
+                                </td>
+                            </tr>
+                        @endif
                     </tbody>
                 </table>
             </div>
@@ -282,7 +317,7 @@
                     <tbody id="scheduleGrid">
                          @forelse($order->schedules as $s)
                             <tr style="border-bottom: 1px solid #dee2e6;">
-                                <td style="padding: 10px; color: #333;">{{ optional(optional($s->customerOrderItem)->tenderItem)->title }}</td>
+                                <td style="padding: 10px; color: #333;">{{ optional(optional($s->customerOrderItem)->product)->name ?? optional(optional($s->customerOrderItem)->tenderItem)->title ?? '' }}</td>
                                  <td style="padding: 10px; color: #333;">{{ $s->po_sr_no }}</td>
                                 <td style="padding: 10px; text-align: right; color: #333;">{{ $s->quantity }}</td>
                                 <td style="padding: 10px; color: #333;">{{ optional($s->unit)->symbol }}</td>
@@ -326,7 +361,7 @@
                     <tbody id="amendmentGrid">
                          @forelse($order->amendments as $a)
                             <tr style="border-bottom: 1px solid #dee2e6;">
-                                <td style="padding: 10px; color: #333;">{{ optional(optional($a->customerOrderItem)->tenderItem)->title }}</td>
+                                <td style="padding: 10px; color: #333;">{{ optional(optional($a->customerOrderItem)->product)->name ?? optional(optional($a->customerOrderItem)->tenderItem)->title ?? '' }}</td>
                                  <td style="padding: 10px; color: #333;">{{ $a->po_sr_no }}</td>
                                 <td style="padding: 10px; color: #333;">{{ $a->amendment_no }}</td>
                                 <td style="padding: 10px; color: #333;">{{ optional($a->amendment_date)->format('Y-m-d') }}</td>
@@ -362,13 +397,91 @@
 
 @push('scripts')
 <script>
-    const tendersData = @json($tendersData);
-
     const units = @json($unitsData);
+    const products = @json($productsData);
 
+    let itemIndexCounter = {{ $order->items->count() }};
     let selectedItemIndex = null;
-    let schedules = [];
-    let amendments = [];
+    let schedules = @json($schedulesData);
+    let amendments = @json($amendmentsData);
+
+    function addItemRow() {
+        const tbody = document.getElementById('itemsBody');
+        const index = itemIndexCounter++;
+        
+        // Remove empty message if present
+        if (tbody.querySelector('tr td[colspan]')) {
+            tbody.innerHTML = '';
+        }
+
+        const row = document.createElement('tr');
+        row.style.borderBottom = '1px solid #dee2e6';
+        row.innerHTML = `
+            <td style="padding: 10px;">
+                <select name="items[${index}][product_id]" id="product_${index}" required
+                        onchange="onProductSelect(${index})"
+                        style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 13px;">
+                    <option value="">Select Product</option>
+                    ${products.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
+                </select>
+            </td>
+            <td style="padding: 10px;">
+                <textarea name="items[${index}][description]" rows="2" placeholder="Enter description"
+                          style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 13px;"></textarea>
+            </td>
+            <td style="padding: 10px;">
+                <input type="text" name="items[${index}][unit_symbol]" id="unit_symbol_${index}" readonly
+                       style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 13px; background:#f8f9fa;">
+                <input type="hidden" name="items[${index}][unit_id]" id="unit_id_${index}" value="">
+            </td>
+            <td style="padding: 10px; text-align: right;">
+                <input type="number" name="items[${index}][ordered_qty]" value="0" step="0.01" min="0.01" required
+                       oninput="recalcItemAmount(${index})"
+                       style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 13px; text-align: right;">
+            </td>
+            <td style="padding: 10px; text-align: right;">
+                <input type="number" name="items[${index}][unit_price]" value="0" step="0.01" min="0" required
+                       oninput="recalcItemAmount(${index})"
+                       style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 13px; text-align: right;">
+            </td>
+            <td style="padding: 10px; text-align: right; color:#333;">
+                <span id="item_amount_display_${index}">0.00</span>
+                <input type="hidden" name="items[${index}][line_amount]" id="item_amount_${index}" value="0">
+            </td>
+            <td style="padding: 10px; text-align: center;">
+                <button type="button" onclick="removeItemRow(this)" style="padding: 5px 10px; background: #dc3545; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 12px;">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(row);
+    }
+
+    function onProductSelect(index) {
+        const productSelect = document.getElementById(`product_${index}`);
+        const productId = productSelect.value;
+        const product = products.find(p => p.id == productId);
+        
+        if (product) {
+            document.getElementById(`unit_id_${index}`).value = product.unit_id;
+            document.getElementById(`unit_symbol_${index}`).value = product.unit_symbol;
+        } else {
+            document.getElementById(`unit_id_${index}`).value = '';
+            document.getElementById(`unit_symbol_${index}`).value = '';
+        }
+        recalcItemAmount(index);
+    }
+
+    function removeItemRow(button) {
+        const row = button.closest('tr');
+        row.remove();
+        
+        const tbody = document.getElementById('itemsBody');
+        if (tbody.children.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" style="padding: 12px; text-align: center; color: #777;">Click "Add Item" to add products.</td></tr>`;
+        }
+        recalculateTotal();
+    }
 
     function onItemSelected(index) {
         selectedItemIndex = index;
@@ -377,24 +490,27 @@
     function getSelectedItem() {
         // Option 1: User selected a row - return that item
         if (selectedItemIndex !== null) {
-            const tenderId = document.getElementById('tender_id').value;
-            if (!tenderId || !tendersData[tenderId]) {
-                alert('Please select a Tender first.');
+            const productSelect = document.querySelector(`select[name="items[${selectedItemIndex}][product_id]"]`);
+            const qtyInput = document.querySelector(`input[name="items[${selectedItemIndex}][ordered_qty]"]`);
+            const unitSymbolInput = document.querySelector(`input[name="items[${selectedItemIndex}][unit_symbol]"]`);
+            
+            if (!productSelect || !productSelect.value) {
+                alert('Please select a product first.');
                 return null;
             }
-            const item = tendersData[tenderId][selectedItemIndex];
-            if (!item) {
+            
+            const product = products.find(p => p.id == productSelect.value);
+            if (!product) {
                 alert('Invalid product selection.');
                 return null;
             }
-            const qtyInput = document.querySelector(`input[name="items[${selectedItemIndex}][ordered_qty]"]`);
-            const poInput = document.querySelector(`input[name="items[${selectedItemIndex}][po_sr_no]"]`);
+            
             return {
                 index: selectedItemIndex,
-                product_name: item.title,
-                po_sr_no: poInput ? poInput.value : '',
+                product_name: product.name,
+                po_sr_no: '',
                 ordered_qty: parseFloat(qtyInput ? qtyInput.value : '0') || 0,
-                unit_symbol: item.unit || '',
+                unit_symbol: unitSymbolInput ? unitSymbolInput.value : product.unit_symbol,
             };
         }
         // Option 2: No row selected - return null to show dropdown in modal
@@ -402,31 +518,39 @@
     }
 
     function getAvailableItems() {
-        const tenderId = document.getElementById('tender_id').value;
-        if (!tenderId || !tendersData[tenderId]) {
-            return [];
-        }
-        return tendersData[tenderId].map((item, index) => {
-            const qtyInput = document.querySelector(`input[name="items[${index}][ordered_qty]"]`);
-            const poInput = document.querySelector(`input[name="items[${index}][po_sr_no]"]`);
-            return {
-                index: index,
-                product_name: item.title,
-                po_sr_no: poInput ? poInput.value : '',
-                ordered_qty: parseFloat(qtyInput ? qtyInput.value : '0') || 0,
-                unit_symbol: item.unit || '',
-            };
+        const tbody = document.getElementById('itemsBody');
+        const rows = tbody.querySelectorAll('tr');
+        const availableItems = [];
+        
+        rows.forEach((row, index) => {
+            const productSelect = row.querySelector(`select[name="items[${index}][product_id]"]`);
+            const qtyInput = row.querySelector(`input[name="items[${index}][ordered_qty]"]`);
+            const unitSymbolInput = row.querySelector(`input[name="items[${index}][unit_symbol]"]`);
+            
+            if (productSelect && productSelect.value) {
+                const product = products.find(p => p.id == productSelect.value);
+                if (product) {
+                    availableItems.push({
+                        index: index,
+                        product_name: product.name,
+                        po_sr_no: '',
+                        ordered_qty: parseFloat(qtyInput ? qtyInput.value : '0') || 0,
+                        unit_symbol: unitSymbolInput ? unitSymbolInput.value : product.unit_symbol,
+                    });
+                }
+            }
         });
+        
+        return availableItems;
     }
 
     function openSchedulePopup() {
-        const tenderId = document.getElementById('tender_id').value;
-        if (!tenderId) {
-            alert('Please select a Tender first.');
-            return;
-        }
         const item = getSelectedItem(); // May be null if no row selected
         const availableItems = getAvailableItems();
+        if (availableItems.length === 0) {
+            alert('Please add at least one product item first.');
+            return;
+        }
         window.CustomerOrderScheduleModal.open(item, availableItems, schedules, units, function (updatedSchedules) {
             schedules = updatedSchedules;
             renderSchedules();
@@ -435,13 +559,12 @@
     }
 
     function openAmendmentPopup() {
-        const tenderId = document.getElementById('tender_id').value;
-        if (!tenderId) {
-            alert('Please select a Tender first.');
-            return;
-        }
         const item = getSelectedItem(); // May be null if no row selected
         const availableItems = getAvailableItems();
+        if (availableItems.length === 0) {
+            alert('Please add at least one product item first.');
+            return;
+        }
         window.CustomerOrderAmendmentModal.open(item, availableItems, amendments, function (updatedAmendments) {
             amendments = updatedAmendments;
             renderAmendments();
@@ -534,15 +657,17 @@
     function recalcItemAmount(index) {
         const qtyInput = document.querySelector(`input[name="items[${index}][ordered_qty]"]`);
         const priceInput = document.querySelector(`input[name="items[${index}][unit_price]"]`);
-        const instInput = document.querySelector(`input[name="items[${index}][installation_charges]"]`);
         const qty = parseFloat(qtyInput ? qtyInput.value : '0') || 0;
         const price = parseFloat(priceInput ? priceInput.value : '0') || 0;
-        const inst = parseFloat(instInput ? instInput.value : '0') || 0;
-        const amount = qty * price + inst;
+        const amount = qty * price;
         const amountField = document.getElementById(`item_amount_${index}`);
         const amountDisplay = document.getElementById(`item_amount_display_${index}`);
         if (amountField) amountField.value = amount.toFixed(2);
         if (amountDisplay) amountDisplay.textContent = amount.toFixed(2);
+        recalculateTax();
+    }
+
+    function recalculateTotal() {
         recalculateTax();
     }
 
@@ -649,5 +774,6 @@
 </script>
 @endpush
 @endsection
+
 
 

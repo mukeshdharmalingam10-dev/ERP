@@ -6,9 +6,28 @@
 <div style="background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
         <h2 style="color: #333; font-size: 24px; margin: 0;">Customer Order Details</h2>
-        <a href="{{ route('customer-orders.index') }}" style="padding: 10px 20px; background: #6c757d; color: white; text-decoration: none; border-radius: 5px; font-weight: 500; display: inline-flex; align-items: center; gap: 8px;">
-            <i class="fas fa-arrow-left"></i> Back to List
-        </a>
+        <div style="display: flex; gap: 10px;">
+            @if(auth()->user()->isSuperAdmin() || auth()->user()->hasPermission('tenders', 'approve'))
+                @if($order->status !== 'Approved')
+                    <form action="{{ route('customer-orders.approve', $order->id) }}" method="POST" style="display: inline;">
+                        @csrf
+                        <button type="submit" 
+                                style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 5px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;"
+                                onclick="return confirm('Are you sure you want to approve this Customer Order?');">
+                            <i class="fas fa-check"></i> Approve
+                        </button>
+                    </form>
+                @endif
+            @endif
+            <a href="{{ route('customer-orders.edit', $order->id) }}"
+               style="padding: 10px 20px; background: #ffc107; color: #212529; text-decoration: none; border-radius: 5px; font-weight: 500; display: inline-flex; align-items: center; gap: 8px;">
+                <i class="fas fa-edit"></i> Edit
+            </a>
+            <a href="{{ route('customer-orders.index') }}"
+               style="padding: 10px 20px; background: #6c757d; color: white; text-decoration: none; border-radius: 5px; font-weight: 500; display: inline-flex; align-items: center; gap: 8px;">
+                <i class="fas fa-arrow-left"></i> Back to List
+            </a>
+        </div>
     </div>
 
     <!-- Header Section -->
@@ -41,13 +60,13 @@
             <table style="width: 100%; border-collapse: collapse;">
                 <thead>
                     <tr style="background: #f8f9fa; border-bottom: 2px solid #dee2e6;">
-                        <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Title</th>
+                        <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Product Name</th>
                         <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Description</th>
                         <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">PL Code</th>
                         <th style="padding: 12px; text-align: right; color: #333; font-weight: 600;">Quantity</th>
                         <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Unit</th>
                         <th style="padding: 12px; text-align: right; color: #333; font-weight: 600;">Price per Qty</th>
-                        <th style="padding: 12px; text-align: right; color: #333; font-weight: 600;">Installation</th>
+                        <th style="padding: 12px; text-align: right; color: #333; font-weight: 600;">-</th>
                         <th style="padding: 12px; text-align: right; color: #333; font-weight: 600;">Amount</th>
                         <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">PO SR No</th>
                     </tr>
@@ -55,13 +74,13 @@
                 <tbody>
                     @forelse($order->items as $item)
                         <tr style="border-bottom: 1px solid #dee2e6;">
-                            <td style="padding: 10px; color: #333;">{{ optional($item->tenderItem)->title }}</td>
+                            <td style="padding: 10px; color: #333;">{{ optional($item->product)->name ?? optional($item->tenderItem)->title ?? '' }}</td>
                             <td style="padding: 10px; color: #555; max-width: 200px; word-wrap: break-word;">{{ $item->description }}</td>
-                            <td style="padding: 10px; color: #555;">{{ $item->pl_code ?? optional($item->tenderItem)->pl_code }}</td>
+                            <td style="padding: 10px; color: #555;">{{ $item->pl_code ?? '' }}</td>
                             <td style="padding: 10px; text-align: right; color: #333;">{{ number_format($item->ordered_qty, 2) }}</td>
-                            <td style="padding: 10px; color: #333;">{{ optional(optional($item->tenderItem)->unit)->symbol }}</td>
+                            <td style="padding: 10px; color: #333;">{{ optional($item->unit)->symbol ?? optional(optional($item->product)->unit)->symbol ?? optional(optional($item->tenderItem)->unit)->symbol ?? '' }}</td>
                             <td style="padding: 10px; text-align: right; color: #333;">₹ {{ number_format($item->unit_price ?? 0, 2) }}</td>
-                            <td style="padding: 10px; text-align: right; color: #333;">₹ {{ number_format($item->installation_charges ?? 0, 2) }}</td>
+                            <td style="padding: 10px; text-align: right; color: #333;">-</td>
                             <td style="padding: 10px; text-align: right; color: #333; font-weight: 600;">₹ {{ number_format($item->line_amount ?? 0, 2) }}</td>
                             <td style="padding: 10px; color: #555;">{{ $item->po_sr_no }}</td>
                         </tr>
@@ -169,7 +188,7 @@
                 <tbody>
                     @forelse($order->schedules as $s)
                         <tr style="border-bottom: 1px solid #dee2e6;">
-                            <td style="padding: 10px; color: #333;">{{ optional(optional($s->customerOrderItem)->tenderItem)->title }}</td>
+                            <td style="padding: 10px; color: #333;">{{ optional(optional($s->customerOrderItem)->product)->name ?? optional(optional($s->customerOrderItem)->tenderItem)->title ?? '' }}</td>
                             <td style="padding: 10px; color: #333;">{{ $s->po_sr_no }}</td>
                             <td style="padding: 10px; text-align: right; color: #333;">{{ $s->quantity }}</td>
                             <td style="padding: 10px; color: #333;">{{ optional($s->unit)->symbol }}</td>
@@ -210,7 +229,7 @@
                 <tbody>
                     @forelse($order->amendments as $a)
                         <tr style="border-bottom: 1px solid #dee2e6;">
-                            <td style="padding: 10px; color: #333;">{{ optional(optional($a->customerOrderItem)->tenderItem)->title }}</td>
+                            <td style="padding: 10px; color: #333;">{{ optional(optional($a->customerOrderItem)->product)->name ?? optional(optional($a->customerOrderItem)->tenderItem)->title ?? '' }}</td>
                             <td style="padding: 10px; color: #333;">{{ $a->po_sr_no }}</td>
                             <td style="padding: 10px; color: #333;">{{ $a->amendment_no }}</td>
                             <td style="padding: 10px; color: #333;">{{ optional($a->amendment_date)->format('Y-m-d') }}</td>

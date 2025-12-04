@@ -291,7 +291,7 @@ class PurchaseIndentController extends Controller
             'items.*.unit_id' => 'required|exists:units,id',
             // Schedule date is optional; validate only when provided
             'items.*.schedule_date' => 'nullable|date|after_or_equal:' . $today,
-            'items.*.special_instructions' => 'required|string',
+            'items.*.special_instructions' => 'nullable|string',
             'items.*.supplier_id' => 'required|exists:suppliers,id',
             'items.*.po_status' => 'nullable|string|max:255',
             'items.*.lr_details' => 'nullable|string|max:255',

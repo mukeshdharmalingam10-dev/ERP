@@ -8,9 +8,12 @@ use App\Models\CustomerOrderItem;
 use App\Models\CustomerOrderSchedule;
 use App\Models\Tender;
 use App\Models\TenderItem;
+use App\Models\Product;
 use App\Models\Unit;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use App\Helpers\FileUploadHelper;
 
@@ -26,6 +29,11 @@ class CustomerOrderController extends Controller
 
         $query = CustomerOrder::with('tender');
         $query = $this->applyBranchFilter($query, CustomerOrder::class);
+
+        // Filter by status if requested
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
 
         // Search functionality
         if ($request->filled('search')) {
@@ -56,24 +64,20 @@ class CustomerOrderController extends Controller
             abort(403, 'You do not have permission to create customer orders.');
         }
 
-        $tenderQuery = Tender::with('items.unit');
+        $tenderQuery = Tender::with(['company']);
         $tenderQuery = $this->applyBranchFilter($tenderQuery, Tender::class);
         $tenders = $tenderQuery->orderByDesc('created_at')->get();
 
-        $tendersData = $tenders->mapWithKeys(function ($t) {
+        // Header-level data per tender for auto-population
+        $tendersMeta = $tenders->mapWithKeys(function ($t) {
             return [
-                $t->id => $t->items->map(function ($item) {
-                    return [
-                        'id' => $item->id,
-                        'title' => $item->title,
-                        'description' => $item->description,
-                        'pl_code' => $item->pl_code,
-                        'qty' => $item->qty,
-                        'unit' => optional($item->unit)->symbol,
-                        // Use quoted price from tender as default price per qty, if available
-                        'price' => $item->price_quoted,
-                    ];
-                })->values(),
+                $t->id => [
+                    'customer_tender_no' => $t->customer_tender_no,
+                    'customer_po_no' => $t->customer_po_no ?? null,
+                    'customer_po_date' => optional($t->customer_po_date)->format('Y-m-d'),
+                    'inspection_agency' => $t->inspection_agency,
+                    'customer_name' => optional($t->company)->company_name,
+                ],
             ];
         });
 
@@ -82,12 +86,26 @@ class CustomerOrderController extends Controller
         $nextId = $lastOrder ? $lastOrder->id + 1 : 1;
         $orderNo = 'CO' . str_pad($nextId, 4, '0', STR_PAD_LEFT);
 
+        // Load products for the items table
+        $productQuery = Product::with('unit');
+        $productQuery = $this->applyBranchFilter($productQuery, Product::class);
+        $products = $productQuery->orderBy('name')->get();
+
+        $productsData = $products->map(function ($p) {
+            return [
+                'id' => $p->id,
+                'name' => $p->name,
+                'unit_id' => $p->unit_id,
+                'unit_symbol' => optional($p->unit)->symbol ?? '',
+            ];
+        })->values();
+
         $units = Unit::all();
         $unitsData = $units->map(function ($u) {
             return ['id' => $u->id, 'symbol' => $u->symbol];
         });
 
-        return view('customer_orders.create', compact('tenders', 'orderNo', 'units', 'tendersData', 'unitsData'));
+        return view('customer_orders.create', compact('tenders', 'orderNo', 'units', 'unitsData', 'tendersMeta', 'products', 'productsData'));
     }
 
     public function store(Request $request)
@@ -102,14 +120,16 @@ class CustomerOrderController extends Controller
             'order_no' => 'required|unique:customer_orders,order_no',
             'order_date' => 'required|date',
             'tender_id' => 'required|exists:tenders,id',
+            'customer_tender_no' => 'nullable|string|max:255',
+            'customer_po_no' => 'nullable|string|max:255',
+            'customer_po_date' => 'nullable|date',
+            'inspection_agency' => 'nullable|string|max:255',
             'items' => 'required|array',
-            'items.*.tender_item_id' => 'required|exists:tender_items,id',
-            'items.*.po_sr_no' => 'nullable|string|max:255',
+            'items.*.product_id' => 'required|exists:products,id',
+            'items.*.unit_id' => 'required|exists:units,id',
             'items.*.description' => 'nullable|string',
-            'items.*.pl_code' => 'nullable|string|max:255',
             'items.*.ordered_qty' => 'required|numeric|min:0.01',
             'items.*.unit_price' => 'required|numeric|min:0',
-            'items.*.installation_charges' => 'nullable|numeric|min:0',
             'items.*.line_amount' => 'required|numeric|min:0',
             'schedules' => 'nullable|array',
             'schedules.*.po_sr_no' => 'nullable|string|max:255',
@@ -125,6 +145,10 @@ class CustomerOrderController extends Controller
                 'order_date' => $request->order_date,
                 'tender_id' => $request->tender_id,
                 'branch_id' => $this->getActiveBranchId(),
+                'customer_tender_no' => $request->customer_tender_no,
+                'customer_po_no' => $request->customer_po_no,
+                'customer_po_date' => $request->customer_po_date,
+                'inspection_agency' => $request->inspection_agency,
                 'tax_type' => $request->tax_type ?? 'cgst_sgst',
                 'total_amount' => $request->total_amount ?? 0,
                 'gst_percent' => $request->gst_percent ?? 0,
@@ -139,19 +163,18 @@ class CustomerOrderController extends Controller
                 'inspection_charges' => $request->inspection_charges ?? 0,
                 'net_amount' => $request->net_amount ?? 0,
                 'amount_note' => $request->amount_note ?? null,
+                'status' => 'Pending',
             ]);
 
             $itemMap = [];
             foreach ($request->items as $key => $itemData) {
                 $item = CustomerOrderItem::create([
                     'customer_order_id' => $order->id,
-                    'tender_item_id' => $itemData['tender_item_id'],
-                    'po_sr_no' => $itemData['po_sr_no'] ?? null,
+                    'product_id' => $itemData['product_id'],
+                    'unit_id' => $itemData['unit_id'],
                     'ordered_qty' => $itemData['ordered_qty'],
                     'description' => $itemData['description'] ?? null,
-                    'pl_code' => $itemData['pl_code'] ?? null,
                     'unit_price' => $itemData['unit_price'] ?? 0,
-                    'installation_charges' => $itemData['installation_charges'] ?? 0,
                     'line_amount' => $itemData['line_amount'] ?? 0,
                 ]);
                 $itemMap[$key] = $item;
@@ -225,6 +248,18 @@ class CustomerOrderController extends Controller
 
             DB::commit();
 
+            // Create notification for Admin and Super Admin
+            Notification::create([
+                'type' => 'customer_order',
+                'sender' => 'Admin',
+                'message' => 'Customer Order (' . $order->order_no . ') has been generated. Please Check and Confirm',
+                'action_type' => 'check',
+                'action_url' => route('customer-orders.show', $order->id),
+                'related_id' => $order->id,
+                'is_read' => false,
+                'user_id' => null, // null means visible to all admins
+            ]);
+
             return redirect()->route('customer-orders.index')->with('success', 'Customer Order created successfully.');
         } catch (\Exception $e) {
             DB::rollBack();
@@ -242,39 +277,79 @@ class CustomerOrderController extends Controller
 
         $query = CustomerOrder::with([
             'tender',
-            'items.tenderItem.unit',
-            'schedules.customerOrderItem.tenderItem',
-            'amendments.customerOrderItem.tenderItem',
+            'items.product.unit',
+            'items.unit',
+            'schedules.customerOrderItem.product',
+            'amendments.customerOrderItem.product',
         ]);
         $query = $this->applyBranchFilter($query, CustomerOrder::class);
         $order = $query->findOrFail($id);
 
-        $tenderQuery = Tender::with('items.unit');
+        $tenderQuery = Tender::with('company');
         $tenderQuery = $this->applyBranchFilter($tenderQuery, Tender::class);
         $tenders = $tenderQuery->orderByDesc('created_at')->get();
 
-        $tendersData = $tenders->mapWithKeys(function ($t) {
+        // Load products for the items table
+        $productQuery = Product::with('unit');
+        $productQuery = $this->applyBranchFilter($productQuery, Product::class);
+        $products = $productQuery->orderBy('name')->get();
+
+        $productsData = $products->map(function ($p) {
             return [
-                $t->id => $t->items->map(function ($item) {
-                    return [
-                        'id' => $item->id,
-                        'title' => $item->title,
-                        'description' => $item->description,
-                        'pl_code' => $item->pl_code,
-                        'qty' => $item->qty,
-                        'unit' => optional($item->unit)->symbol,
-                        'price' => $item->price_quoted,
-                    ];
-                })->values(),
+                'id' => $p->id,
+                'name' => $p->name,
+                'unit_id' => $p->unit_id,
+                'unit_symbol' => optional($p->unit)->symbol ?? '',
             ];
-        });
+        })->values();
 
         $units = Unit::all();
         $unitsData = $units->map(function ($u) {
             return ['id' => $u->id, 'symbol' => $u->symbol];
         });
 
-        return view('customer_orders.edit', compact('order', 'tenders', 'tendersData', 'units', 'unitsData'));
+        // Prepare schedules data
+        $schedulesData = $order->schedules->map(function ($s) use ($order) {
+            $itemIndex = $s->customerOrderItem ? $order->items->search(function($item) use ($s) {
+                return $item->id == $s->customer_order_item_id;
+            }) : 0;
+            
+            return [
+                'item_index' => $itemIndex !== false ? $itemIndex : 0,
+                'product_name' => optional(optional($s->customerOrderItem)->product)->name ?? optional(optional($s->customerOrderItem)->tenderItem)->title ?? '',
+                'po_sr_no' => $s->po_sr_no,
+                'ordered_qty' => optional($s->customerOrderItem)->ordered_qty ?? 0,
+                'quantity' => $s->quantity,
+                'unit_id' => $s->unit_id,
+                'unit_symbol' => optional($s->unit)->symbol ?? '',
+                'start_date' => optional($s->start_date)->format('Y-m-d') ?? '',
+                'end_date' => optional($s->end_date)->format('Y-m-d') ?? '',
+                'inspection_clause' => $s->inspection_clause ?? '',
+            ];
+        })->values();
+
+        // Prepare amendments data
+        $amendmentsData = $order->amendments->map(function ($a) use ($order) {
+            $itemIndex = $a->customerOrderItem ? $order->items->search(function($item) use ($a) {
+                return $item->id == $a->customer_order_item_id;
+            }) : 0;
+            
+            return [
+                'item_index' => $itemIndex !== false ? $itemIndex : 0,
+                'product_name' => optional(optional($a->customerOrderItem)->product)->name ?? optional(optional($a->customerOrderItem)->tenderItem)->title ?? '',
+                'po_sr_no' => $a->po_sr_no,
+                'ordered_qty' => optional($a->customerOrderItem)->ordered_qty ?? 0,
+                'amendment_no' => $a->amendment_no ?? '',
+                'amendment_date' => optional($a->amendment_date)->format('Y-m-d') ?? '',
+                'existing_quantity' => $a->existing_quantity ?? '',
+                'new_quantity' => $a->new_quantity,
+                'existing_info' => $a->existing_info ?? '',
+                'new_info' => $a->new_info ?? '',
+                'remarks' => $a->remarks ?? '',
+            ];
+        })->values();
+
+        return view('customer_orders.edit', compact('order', 'tenders', 'units', 'unitsData', 'products', 'productsData', 'schedulesData', 'amendmentsData'));
     }
 
     public function show($id)
@@ -287,9 +362,10 @@ class CustomerOrderController extends Controller
 
         $query = CustomerOrder::with([
             'tender',
-            'items.tenderItem.unit',
-            'schedules.customerOrderItem.tenderItem.unit',
-            'amendments.customerOrderItem.tenderItem',
+            'items.product.unit',
+            'items.unit',
+            'schedules.customerOrderItem.product.unit',
+            'amendments.customerOrderItem.product',
         ]);
         $query = $this->applyBranchFilter($query, CustomerOrder::class);
         $order = $query->findOrFail($id);
@@ -312,14 +388,16 @@ class CustomerOrderController extends Controller
         $request->validate([
             'order_date' => 'required|date',
             'tender_id' => 'required|exists:tenders,id',
+            'customer_tender_no' => 'nullable|string|max:255',
+            'customer_po_no' => 'nullable|string|max:255',
+            'customer_po_date' => 'nullable|date',
+            'inspection_agency' => 'nullable|string|max:255',
             'items' => 'required|array',
-            'items.*.tender_item_id' => 'required|exists:tender_items,id',
-            'items.*.po_sr_no' => 'nullable|string|max:255',
+            'items.*.product_id' => 'required|exists:products,id',
+            'items.*.unit_id' => 'required|exists:units,id',
             'items.*.description' => 'nullable|string',
-            'items.*.pl_code' => 'nullable|string|max:255',
             'items.*.ordered_qty' => 'required|numeric|min:0.01',
             'items.*.unit_price' => 'required|numeric|min:0',
-            'items.*.installation_charges' => 'nullable|numeric|min:0',
             'items.*.line_amount' => 'required|numeric|min:0',
             'schedules' => 'nullable|array',
             'schedules.*.po_sr_no' => 'nullable|string|max:255',
@@ -333,6 +411,10 @@ class CustomerOrderController extends Controller
             $order->update([
                 'order_date' => $request->order_date,
                 'tender_id' => $request->tender_id,
+                'customer_tender_no' => $request->customer_tender_no,
+                'customer_po_no' => $request->customer_po_no,
+                'customer_po_date' => $request->customer_po_date,
+                'inspection_agency' => $request->inspection_agency,
                 'tax_type' => $request->tax_type ?? 'cgst_sgst',
                 'total_amount' => $request->total_amount ?? 0,
                 'gst_percent' => $request->gst_percent ?? 0,
@@ -363,13 +445,11 @@ class CustomerOrderController extends Controller
             foreach ($request->items as $key => $itemData) {
                 $item = CustomerOrderItem::create([
                     'customer_order_id' => $order->id,
-                    'tender_item_id' => $itemData['tender_item_id'],
-                    'po_sr_no' => $itemData['po_sr_no'] ?? null,
+                    'product_id' => $itemData['product_id'],
+                    'unit_id' => $itemData['unit_id'],
                     'ordered_qty' => $itemData['ordered_qty'],
                     'description' => $itemData['description'] ?? null,
-                    'pl_code' => $itemData['pl_code'] ?? null,
                     'unit_price' => $itemData['unit_price'] ?? 0,
-                    'installation_charges' => $itemData['installation_charges'] ?? 0,
                     'line_amount' => $itemData['line_amount'] ?? 0,
                 ]);
                 $itemMap[$key] = $item;
@@ -479,6 +559,47 @@ class CustomerOrderController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Error deleting Customer Order: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Approve a Customer Order
+     */
+    public function approve($id)
+    {
+        $user = auth()->user();
+
+        // Only Admin and Super Admin can approve
+        if (!$user->isSuperAdmin() && !$user->hasPermission('tenders', 'approve')) {
+            abort(403, 'You do not have permission to approve customer orders.');
+        }
+
+        $query = CustomerOrder::query();
+        $query = $this->applyBranchFilter($query, CustomerOrder::class);
+        $order = $query->findOrFail($id);
+
+        if ($order->status === 'Approved') {
+            return back()->with('error', 'Customer Order is already approved.');
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $order->status = 'Approved';
+            $order->updated_by_id = $user->id;
+            $order->save();
+
+            // Mark related notification as read
+            Notification::where('type', 'customer_order')
+                ->where('related_id', $order->id)
+                ->update(['is_read' => true, 'read_at' => now()]);
+
+            DB::commit();
+
+            return redirect()->route('customer-orders.show', $order->id)->with('success', 'Customer Order approved successfully.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Error approving Customer Order: ' . $e->getMessage());
         }
     }
 }

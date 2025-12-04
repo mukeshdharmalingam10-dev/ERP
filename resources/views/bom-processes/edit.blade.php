@@ -69,16 +69,20 @@
             </div>
         </div>
 
-        <div style="display: flex; gap: 15px; margin-top: 30px;">
-            <button type="button" onclick="clearForm()" style="padding: 12px 24px; background: #6c757d; color: white; border: none; border-radius: 5px; font-weight: 500; cursor: pointer;">
-                <i class="fas fa-eraser"></i> Clear
-            </button>
-            <a href="{{ route('bom-processes.index') }}" style="padding: 12px 24px; background: #17a2b8; color: white; text-decoration: none; border-radius: 5px; font-weight: 500; display: inline-flex; align-items: center; gap: 8px;">
-                <i class="fas fa-list"></i> List
-            </a>
-            <button type="submit" style="padding: 12px 24px; background: #667eea; color: white; border: none; border-radius: 5px; font-weight: 500; cursor: pointer;">
-                <i class="fas fa-save"></i> Update
-            </button>
+        <div style="display: flex; gap: 15px; justify-content: space-between; align-items: center; margin-top: 30px;">
+            <div>
+                <a href="{{ route('bom-processes.index') }}" style="padding: 12px 24px; background: #17a2b8; color: white; text-decoration: none; border-radius: 5px; font-weight: 500; display: inline-flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-list"></i> List
+                </a>
+            </div>
+            <div style="display: flex; gap: 15px;">
+                <button type="button" onclick="clearForm()" style="padding: 12px 24px; background: #6c757d; color: white; border: none; border-radius: 5px; font-weight: 500; cursor: pointer;">
+                    <i class="fas fa-eraser"></i> Clear
+                </button>
+                <button type="submit" style="padding: 12px 24px; background: #667eea; color: white; border: none; border-radius: 5px; font-weight: 500; cursor: pointer;">
+                    <i class="fas fa-save"></i> Update
+                </button>
+            </div>
         </div>
     </form>
 </div>

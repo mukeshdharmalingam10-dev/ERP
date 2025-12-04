@@ -79,6 +79,7 @@
                         <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Customer Order No</th>
                         <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Order Date</th>
                         <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Tender No</th>
+                        <th style="padding: 12px; text-align: center; color: #333; font-weight: 600;">Status</th>
                         <th style="padding: 12px; text-align: center; color: #333; font-weight: 600;">Actions</th>
                     </tr>
                 </thead>
@@ -89,6 +90,13 @@
                             <td style="padding: 12px; color: #333; font-weight: 500;">{{ $order->order_no }}</td>
                             <td style="padding: 12px; color: #666;">{{ optional($order->order_date)->format('d-m-Y') }}</td>
                             <td style="padding: 12px; color: #666;">{{ optional($order->tender)->tender_no }}</td>
+                            <td style="padding: 12px; text-align: center;">
+                                @if($order->status === 'Approved')
+                                    <span style="padding: 4px 12px; background: #d4edda; color: #155724; border-radius: 3px; font-size: 12px; font-weight: 500;">Approved</span>
+                                @else
+                                    <span style="padding: 4px 12px; background: #fff3cd; color: #856404; border-radius: 3px; font-size: 12px; font-weight: 500;">Pending</span>
+                                @endif
+                            </td>
                             <td style="padding: 12px; text-align: center;">
                                 <div style="display: inline-flex; gap: 6px;">
                                     <a href="{{ route('customer-orders.show', $order->id) }}" style="padding: 6px 12px; background: #17a2b8; color: white; text-decoration: none; border-radius: 4px; font-size: 12px;">

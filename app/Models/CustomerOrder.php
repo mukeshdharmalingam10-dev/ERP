@@ -52,7 +52,8 @@ class CustomerOrder extends Model
         'resin_type',
         'packing_instructions',
         'prepared_by_id',
-        'approved_by_id',
+        'status',
+        'updated_by_id',
     ];
 
     protected $casts = [
@@ -91,10 +92,11 @@ class CustomerOrder extends Model
         return $this->belongsTo(User::class, 'prepared_by_id');
     }
 
-    public function approvedBy()
+    public function updater()
     {
-        return $this->belongsTo(User::class, 'approved_by_id');
+        return $this->belongsTo(User::class, 'updated_by_id');
     }
+
 }
 
 
