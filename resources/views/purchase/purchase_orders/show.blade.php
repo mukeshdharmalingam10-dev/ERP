@@ -110,7 +110,7 @@
                         <tr style="border-bottom:1px solid #dee2e6;">
                             <td style="padding:10px;">{{ $item->item_name }}</td>
                             <td style="padding:10px;">{{ $item->item_description }}</td>
-                            <td style="padding:10px; text-align:right;">{{ number_format($item->po_quantity, 3) }}</td>
+                            <td style="padding:10px; text-align:right;">{{ number_format((int)$item->po_quantity, 0) }}</td>
                             <td style="padding:10px;">{{ optional($item->unit)->symbol ?? 'N/A' }}</td>
                             <td style="padding:10px; text-align:right;">₹{{ number_format($item->price, 2) }}</td>
                             <td style="padding:10px; text-align:right;">₹{{ number_format($item->amount, 2) }}</td>

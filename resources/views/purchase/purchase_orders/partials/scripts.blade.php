@@ -1,3 +1,95 @@
+<style>
+    .warning-modal-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+    }
+    .warning-modal-backdrop.show {
+        display: flex;
+    }
+    .warning-modal {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        min-width: 400px;
+        max-width: 500px;
+        overflow: hidden;
+        animation: slideDown 0.3s ease-out;
+    }
+    @keyframes slideDown {
+        from {
+            transform: translateY(-20px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+    .warning-modal-header {
+        background: #ffc107;
+        color: #856404;
+        padding: 16px 20px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-weight: 600;
+        font-size: 16px;
+    }
+    .warning-modal-header i {
+        font-size: 20px;
+    }
+    .warning-modal-body {
+        padding: 20px;
+        color: #333;
+        font-size: 14px;
+        line-height: 1.5;
+    }
+    .warning-modal-footer {
+        padding: 12px 20px;
+        background: #f8f9fa;
+        display: flex;
+        justify-content: flex-end;
+        border-top: 1px solid #dee2e6;
+    }
+    .warning-modal-btn {
+        padding: 8px 20px;
+        background: #ffc107;
+        color: #856404;
+        border: none;
+        border-radius: 5px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    .warning-modal-btn:hover {
+        background: #ffca2c;
+    }
+</style>
+
+<div id="warning-modal-backdrop" class="warning-modal-backdrop">
+    <div class="warning-modal">
+        <div class="warning-modal-header">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span>Warning</span>
+        </div>
+        <div class="warning-modal-body" id="warning-modal-message">
+            <!-- Message will be inserted here -->
+        </div>
+        <div class="warning-modal-footer">
+            <button type="button" class="warning-modal-btn" onclick="closeWarningModal()">OK</button>
+        </div>
+    </div>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const tableBody = document.querySelector('#itemsTable tbody');
@@ -9,6 +101,44 @@ document.addEventListener('DOMContentLoaded', function () {
     const customers = @json($customers);
     const suppliers = @json($suppliers);
     const billingAddresses = @json($billingAddresses);
+    
+    // Route URLs for API calls - using route helper to handle subdirectory installations
+    // Generate route URLs with placeholder ID, then replace in JavaScript
+    @php
+        $placeholderId = 'ROUTE_ID_PLACEHOLDER_12345';
+        $purchaseIndentItemsUrlPattern = route('purchase-orders.purchase-indent.items', ['id' => $placeholderId]);
+        $customerDetailsUrlPattern = route('purchase-orders.customer', ['id' => $placeholderId]);
+        $supplierDetailsUrlPattern = route('purchase-orders.supplier', ['id' => $placeholderId]);
+        $billingAddressDetailsUrlPattern = route('purchase-orders.billing-address', ['id' => $placeholderId]);
+    @endphp
+    const purchaseIndentItemsUrl = @json($purchaseIndentItemsUrlPattern);
+    const customerDetailsUrl = @json($customerDetailsUrlPattern);
+    const supplierDetailsUrl = @json($supplierDetailsUrlPattern);
+    const billingAddressDetailsUrl = @json($billingAddressDetailsUrlPattern);
+    const routeIdPlaceholder = 'ROUTE_ID_PLACEHOLDER_12345';
+
+    // Warning Modal Functions
+    window.showWarningModal = function(message) {
+        const backdrop = document.getElementById('warning-modal-backdrop');
+        const messageEl = document.getElementById('warning-modal-message');
+        if (!backdrop || !messageEl) return;
+        messageEl.textContent = message;
+        backdrop.classList.add('show');
+    };
+
+    window.closeWarningModal = function() {
+        const backdrop = document.getElementById('warning-modal-backdrop');
+        if (backdrop) {
+            backdrop.classList.remove('show');
+        }
+    };
+
+    // Close modal on backdrop click
+    document.getElementById('warning-modal-backdrop')?.addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeWarningModal();
+        }
+    });
 
     // Purchase Indent Selection - Load Items
     if (purchaseIndentSelect) {
@@ -22,7 +152,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 loadingMsg.style.cssText = 'padding: 10px; background: #f0f0f0; margin: 10px 0; border-radius: 5px;';
                 purchaseIndentSelect.parentElement.appendChild(loadingMsg);
                 
-                const url = `/purchase-orders/purchase-indent/${indentId}/items`;
+                const url = purchaseIndentItemsUrl.replace(routeIdPlaceholder, indentId);
                 fetch(url, {
                     method: 'GET',
                     headers: {
@@ -161,7 +291,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const selectedId = e.target.value;
             
             if (shipTo === 'Customer' && selectedId) {
-                fetch(`/purchase-orders/customer/${selectedId}`)
+                fetch(customerDetailsUrl.replace(routeIdPlaceholder, selectedId))
                     .then(response => response.json())
                     .then(data => {
                         document.getElementById('ship_to_address_line_1').value = data.shipping_address_line_1 || '';
@@ -174,7 +304,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         document.getElementById('ship_to_gst_no').value = data.gst_no || '';
                     });
             } else if (shipTo === 'Subcontractor' && selectedId) {
-                fetch(`/purchase-orders/supplier/${selectedId}`)
+                fetch(supplierDetailsUrl.replace(routeIdPlaceholder, selectedId))
                     .then(response => response.json())
                     .then(data => {
                         document.getElementById('ship_to_address_line_1').value = data.address_line_1 || '';
@@ -186,7 +316,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         document.getElementById('ship_to_gst_no').value = data.gst || '';
                     });
             } else if (shipTo === 'Company' && selectedId) {
-                fetch(`/purchase-orders/billing-address/${selectedId}`)
+                fetch(billingAddressDetailsUrl.replace(routeIdPlaceholder, selectedId))
                     .then(response => response.json())
                     .then(data => {
                         document.getElementById('ship_to_address_line_1').value = data.address_line_1 || '';
@@ -206,7 +336,7 @@ document.addEventListener('DOMContentLoaded', function () {
         supplierSelect.addEventListener('change', function() {
             const supplierId = this.value;
             if (supplierId) {
-                fetch(`/purchase-orders/supplier/${supplierId}`)
+                fetch(supplierDetailsUrl.replace(routeIdPlaceholder, supplierId))
                     .then(response => response.json())
                     .then(data => {
                         document.getElementById('supplier_address_line_1').value = data.address_line_1 || '';
@@ -225,7 +355,7 @@ document.addEventListener('DOMContentLoaded', function () {
         billingAddressSelect.addEventListener('change', function() {
             const billingId = this.value;
             if (billingId) {
-                fetch(`/purchase-orders/billing-address/${billingId}`)
+                fetch(billingAddressDetailsUrl.replace(routeIdPlaceholder, billingId))
                     .then(response => response.json())
                     .then(data => {
                         document.getElementById('billing_address_line_1').value = data.address_line_1 || '';
@@ -260,7 +390,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 input.setAttribute('name', newName);
             }
 
-            if (input.type === 'number' || input.type === 'date') {
+            // Handle PO Quantity field separately (must be empty, not 0, since min="1")
+            if (input.classList.contains('po_quantity')) {
+                input.value = '';
+            } else if (input.type === 'number' || input.type === 'date') {
                 input.value = input.type === 'date' ? '' : 0;
             } else if (input.type !== 'hidden') {
                 if (input.tagName === 'SELECT') {
@@ -277,10 +410,17 @@ document.addEventListener('DOMContentLoaded', function () {
             removeBtn.setAttribute('onclick', 'removeRow(this)');
         }
 
+        // Remove data-listener-attached attribute from cloned row's item_name select
+        // This ensures the event listener will be added for the new row
+        const clonedItemNameSelect = newRow.querySelector('.item_name');
+        if (clonedItemNameSelect) {
+            clonedItemNameSelect.removeAttribute('data-listener-attached');
+        }
+
         tableBody.appendChild(newRow);
         
-        // Populate dropdown for new row
-        populateItemNameDropdowns();
+        // Populate dropdown only for the new row (preserves existing selections)
+        populateItemNameDropdowns(newRow);
         
         attachRowEvents(newRow);
         return newRow;
@@ -307,11 +447,18 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Populate all Item Name dropdowns with purchase indent items
-    function populateItemNameDropdowns() {
-        const allRows = tableBody.querySelectorAll('tr');
-        allRows.forEach(row => {
+    function populateItemNameDropdowns(specificRow = null) {
+        const rowsToProcess = specificRow ? [specificRow] : tableBody.querySelectorAll('tr');
+        
+        rowsToProcess.forEach(row => {
             const itemNameSelect = row.querySelector('.item_name');
             if (itemNameSelect) {
+                // Store the currently selected value to preserve it
+                const currentValue = itemNameSelect.value;
+                
+                // Check if event listener already exists to avoid duplicates
+                const hasListener = itemNameSelect.hasAttribute('data-listener-attached');
+                
                 // Clear existing options
                 itemNameSelect.innerHTML = '<option value="">Select Item</option>';
                 
@@ -330,31 +477,43 @@ document.addEventListener('DOMContentLoaded', function () {
                     itemNameSelect.appendChild(option);
                 });
                 
-                // Add change event listener to populate other fields when item is selected
-                itemNameSelect.addEventListener('change', function() {
-                    const selectedOption = this.options[this.selectedIndex];
-                    if (selectedOption && selectedOption.dataset.itemId) {
-                        const row = this.closest('tr');
-                        const purchaseIndentItemId = row.querySelector('.purchase_indent_item_id');
-                        const rawMaterialId = row.querySelector('.raw_material_id');
-                        const itemDescription = row.querySelector('.item_description');
-                        const approvedQuantity = row.querySelector('.approved_quantity');
-                        const alreadyRaisedQty = row.querySelector('.already_raised_po_qty');
-                        const unitId = row.querySelector('.unit_id');
-                        const unitSymbol = row.querySelector('.unit_symbol');
-                        
-                        if (purchaseIndentItemId) purchaseIndentItemId.value = selectedOption.dataset.itemId;
-                        if (rawMaterialId) rawMaterialId.value = selectedOption.dataset.rawMaterialId;
-                        if (itemDescription) itemDescription.value = selectedOption.dataset.itemDescription;
-                        if (approvedQuantity) approvedQuantity.value = selectedOption.dataset.approvedQuantity;
-                        if (alreadyRaisedQty) alreadyRaisedQty.value = selectedOption.dataset.alreadyRaisedQty;
-                        if (unitId) unitId.value = selectedOption.dataset.unitId;
-                        if (unitSymbol) unitSymbol.value = selectedOption.dataset.unitSymbol;
-                        
-                        calculateRowAmount(row);
-                        calculateTotals();
+                // Restore the previously selected value if it exists in the new options
+                if (currentValue) {
+                    // Check if the value still exists in the dropdown
+                    const optionExists = Array.from(itemNameSelect.options).some(opt => opt.value === currentValue);
+                    if (optionExists) {
+                        itemNameSelect.value = currentValue;
                     }
-                });
+                }
+                
+                // Add change event listener only if it doesn't exist yet
+                if (!hasListener) {
+                    itemNameSelect.addEventListener('change', function() {
+                        const selectedOption = this.options[this.selectedIndex];
+                        if (selectedOption && selectedOption.dataset.itemId) {
+                            const row = this.closest('tr');
+                            const purchaseIndentItemId = row.querySelector('.purchase_indent_item_id');
+                            const rawMaterialId = row.querySelector('.raw_material_id');
+                            const itemDescription = row.querySelector('.item_description');
+                            const approvedQuantity = row.querySelector('.approved_quantity');
+                            const alreadyRaisedQty = row.querySelector('.already_raised_po_qty');
+                            const unitId = row.querySelector('.unit_id');
+                            const unitSymbol = row.querySelector('.unit_symbol');
+                            
+                            if (purchaseIndentItemId) purchaseIndentItemId.value = selectedOption.dataset.itemId;
+                            if (rawMaterialId) rawMaterialId.value = selectedOption.dataset.rawMaterialId;
+                            if (itemDescription) itemDescription.value = selectedOption.dataset.itemDescription;
+                            if (approvedQuantity) approvedQuantity.value = selectedOption.dataset.approvedQuantity;
+                            if (alreadyRaisedQty) alreadyRaisedQty.value = selectedOption.dataset.alreadyRaisedQty;
+                            if (unitId) unitId.value = selectedOption.dataset.unitId;
+                            if (unitSymbol) unitSymbol.value = selectedOption.dataset.unitSymbol;
+                            
+                            calculateRowAmount(row);
+                            calculateTotals();
+                        }
+                    });
+                    itemNameSelect.setAttribute('data-listener-attached', 'true');
+                }
             }
         });
     }
@@ -408,18 +567,117 @@ document.addEventListener('DOMContentLoaded', function () {
         const qtyInKgInput = row.querySelector('.qty_in_kg');
         const priceInput = row.querySelector('.price');
         const amountInput = row.querySelector('.amount');
+        const purchaseIndentItemIdInput = row.querySelector('.purchase_indent_item_id');
 
         // PO Quantity Validation
         if (poQuantityInput) {
             poQuantityInput.addEventListener('blur', function() {
-                const poQty = parseFloat(this.value) || 0;
+                // Ensure only whole numbers (no decimals)
+                let poQty = parseInt(this.value) || 0;
+                if (this.value && this.value.includes('.')) {
+                    poQty = Math.floor(parseFloat(this.value)) || 0;
+                    this.value = poQty;
+                }
+                if (poQty < 1) {
+                    poQty = 0;
+                    this.value = '';
+                } else {
+                    this.value = poQty;
+                }
+                
                 const approvedQty = parseFloat(approvedQtyInput.value) || 0;
                 const alreadyRaised = parseFloat(alreadyRaisedInput.value) || 0;
                 const remainingQty = approvedQty - alreadyRaised;
+                const purchaseIndentItemId = purchaseIndentItemIdInput ? purchaseIndentItemIdInput.value : null;
 
-                if (poQty > remainingQty) {
-                    alert('PO Quantity should not be greater than Approved Qty as per the sum of Raised and PO Qty.');
-                    this.value = remainingQty > 0 ? remainingQty : 0;
+                // If no purchase indent item ID, skip cross-row validation
+                if (!purchaseIndentItemId) {
+                    if (poQty > remainingQty) {
+                        showWarningModal('PO Quantity should not be greater than Approved Qty as per the sum of Raised and PO Qty.');
+                        const maxAllowed = Math.floor(remainingQty);
+                        this.value = maxAllowed > 0 ? maxAllowed : '';
+                    }
+                    calculateRowAmount(row);
+                    calculateTotals();
+                    return;
+                }
+
+                // Calculate total PO Quantity across all rows for the same purchase_indent_item_id
+                let totalPoQtyAcrossRows = 0;
+                const allRows = tableBody.querySelectorAll('tr');
+                allRows.forEach(otherRow => {
+                    if (otherRow === row) {
+                        // Include current row's value
+                        totalPoQtyAcrossRows += poQty;
+                    } else {
+                        const otherPurchaseIndentItemId = otherRow.querySelector('.purchase_indent_item_id');
+                        const otherPoQtyInput = otherRow.querySelector('.po_quantity');
+                        if (otherPurchaseIndentItemId && otherPoQtyInput && 
+                            otherPurchaseIndentItemId.value === purchaseIndentItemId) {
+                            const otherPoQty = parseInt(otherPoQtyInput.value) || 0;
+                            totalPoQtyAcrossRows += otherPoQty;
+                        }
+                    }
+                });
+
+                // Check if total exceeds remaining quantity
+                if (totalPoQtyAcrossRows > remainingQty) {
+                    showWarningModal('PO Quantity has already been fully or partially processed in other rows. Total PO Quantity across all rows cannot exceed the remaining quantity (Approved Qty - Already Raised PO Qty).');
+                    // Calculate maximum allowed for this row
+                    const otherRowsTotal = totalPoQtyAcrossRows - poQty;
+                    const maxAllowedForThisRow = Math.floor(Math.max(0, remainingQty - otherRowsTotal));
+                    this.value = maxAllowedForThisRow > 0 ? maxAllowedForThisRow : '';
+                } else if (poQty > remainingQty) {
+                    // Single row validation
+                    showWarningModal('PO Quantity should not be greater than Approved Qty as per the sum of Raised and PO Qty.');
+                    const maxAllowed = Math.floor(remainingQty);
+                    this.value = maxAllowed > 0 ? maxAllowed : '';
+                }
+                calculateRowAmount(row);
+                calculateTotals();
+            });
+
+            // Also validate on input to provide real-time feedback
+            poQuantityInput.addEventListener('input', function() {
+                // Remove any decimal points and ensure only integers
+                if (this.value.includes('.')) {
+                    this.value = Math.floor(parseFloat(this.value)) || '';
+                }
+                
+                let poQty = parseInt(this.value) || 0;
+                const approvedQty = parseFloat(approvedQtyInput.value) || 0;
+                const alreadyRaised = parseFloat(alreadyRaisedInput.value) || 0;
+                const remainingQty = approvedQty - alreadyRaised;
+                const purchaseIndentItemId = purchaseIndentItemIdInput ? purchaseIndentItemIdInput.value : null;
+
+                if (!purchaseIndentItemId || remainingQty <= 0) {
+                    return;
+                }
+
+                // Calculate total PO Quantity across all rows for the same purchase_indent_item_id
+                let totalPoQtyAcrossRows = 0;
+                const allRows = tableBody.querySelectorAll('tr');
+                allRows.forEach(otherRow => {
+                    if (otherRow === row) {
+                        totalPoQtyAcrossRows += poQty;
+                    } else {
+                        const otherPurchaseIndentItemId = otherRow.querySelector('.purchase_indent_item_id');
+                        const otherPoQtyInput = otherRow.querySelector('.po_quantity');
+                        if (otherPurchaseIndentItemId && otherPoQtyInput && 
+                            otherPurchaseIndentItemId.value === purchaseIndentItemId) {
+                            const otherPoQty = parseInt(otherPoQtyInput.value) || 0;
+                            totalPoQtyAcrossRows += otherPoQty;
+                        }
+                    }
+                });
+
+                // If total exceeds remaining, adjust the value
+                if (totalPoQtyAcrossRows > remainingQty) {
+                    const otherRowsTotal = totalPoQtyAcrossRows - poQty;
+                    const maxAllowedForThisRow = Math.floor(Math.max(0, remainingQty - otherRowsTotal));
+                    if (poQty > maxAllowedForThisRow) {
+                        this.value = maxAllowedForThisRow > 0 ? maxAllowedForThisRow : '';
+                    }
                 }
                 calculateRowAmount(row);
                 calculateTotals();
@@ -450,7 +708,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function calculateRowAmount(row) {
-        const poQty = parseFloat(row.querySelector('.po_quantity').value) || 0;
+        const poQty = parseInt(row.querySelector('.po_quantity').value) || 0;
         const qtyInKg = parseFloat(row.querySelector('.qty_in_kg').value) || 0;
         const price = parseFloat(row.querySelector('.price').value) || 0;
         const amountInput = row.querySelector('.amount');

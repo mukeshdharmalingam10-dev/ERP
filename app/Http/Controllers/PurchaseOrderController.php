@@ -646,7 +646,7 @@ class PurchaseOrderController extends Controller
     {
         $today = now()->toDateString();
 
-        return $request->validate([
+        $rules = [
             'purchase_indent_id' => 'nullable|exists:purchase_indents,id',
             'ship_to' => 'required|in:Customer,Subcontractor,Company',
             'customer_id' => 'nullable|required_if:ship_to,Customer|exists:customers,id',
@@ -705,7 +705,7 @@ class PurchaseOrderController extends Controller
             'items.*.pack_details' => 'nullable|string',
             'items.*.approved_quantity' => 'nullable|numeric|min:0',
             'items.*.already_raised_po_qty' => 'nullable|numeric|min:0',
-            'items.*.po_quantity' => 'required|numeric|min:0.01',
+            'items.*.po_quantity' => 'required|integer|min:1',
             'items.*.expected_delivery_date' => 'nullable|date|after_or_equal:' . $today,
             'items.*.unit_id' => 'nullable|exists:units,id',
             'items.*.qty_in_kg' => 'nullable|numeric|min:0',
@@ -718,7 +718,31 @@ class PurchaseOrderController extends Controller
             'items.*.delivered_qty' => 'nullable|numeric|min:0',
             'items.*.delivery_status' => 'nullable|in:Completed,Incomplete,Partially Completed',
             'items.*.remarks' => 'nullable|string',
-        ]);
+        ];
+
+        $messages = [
+            'ship_to.required' => 'Please select where to ship the order.',
+            'ship_to.in' => 'Invalid ship to option selected.',
+            'customer_id.required_if' => 'Please select a customer when Ship To is set to Customer.',
+            'subcontractor_id.required_if' => 'Please select a subcontractor when Ship To is set to Subcontractor.',
+            'company_id.required_if' => 'Please select a company when Ship To is set to Company.',
+            'supplier_id.required' => 'Please select a supplier.',
+            'supplier_id.exists' => 'The selected supplier is invalid.',
+            'billing_address_id.required' => 'Please select a billing address.',
+            'billing_address_id.exists' => 'The selected billing address is invalid.',
+            'items.required' => 'Please add at least one product item.',
+            'items.min' => 'Please add at least one product item.',
+            'items.*.item_name.required' => 'Item name is required for all product rows.',
+            'items.*.item_description.required' => 'Item description is required for all product rows.',
+            'items.*.po_quantity.required' => 'PO Quantity is required for all product rows.',
+            'items.*.po_quantity.integer' => 'PO Quantity must be a whole number (no decimals allowed).',
+            'items.*.po_quantity.min' => 'PO Quantity must be at least 1 for all product rows.',
+            'items.*.price.required' => 'Price is required for all product rows.',
+            'items.*.price.min' => 'Price must be 0 or greater for all product rows.',
+            'items.*.expected_delivery_date.after_or_equal' => 'Expected delivery date cannot be in the past.',
+        ];
+
+        return $request->validate($rules, $messages);
     }
 
     protected function generatePONo(): string

@@ -16,7 +16,28 @@
             <strong>Please fix the following errors:</strong>
             <ul style="margin:10px 0 0 20px; padding:0;">
                 @foreach($errors->all() as $error)
-                    <li>{{ $error }}</li>
+                    @php
+                        // Format error messages to be more user-friendly
+                        $formattedError = $error;
+                        // Replace items.X.field with "Row X+1: Field Name"
+                        if (preg_match('/items\.(\d+)\.(.+)/', $error, $matches)) {
+                            $rowNumber = (int)$matches[1] + 1;
+                            $fieldName = str_replace('_', ' ', $matches[2]);
+                            $fieldName = ucwords($fieldName);
+                            // Remove common validation suffixes
+                            $fieldName = preg_replace('/\s+(is required|must be at least|must be|is invalid)$/i', '', $fieldName);
+                            $formattedError = "Row {$rowNumber}: " . $fieldName . " - " . preg_replace('/^The items\.\d+\.\w+\s+/', '', $error);
+                        }
+                        // Replace field names with friendly names
+                        $formattedError = str_replace('company id', 'Company Name', $formattedError);
+                        $formattedError = str_replace('billing address id', 'Billing Address', $formattedError);
+                        $formattedError = str_replace('po quantity', 'PO Quantity', $formattedError);
+                        $formattedError = str_replace('item name', 'Item Name', $formattedError);
+                        $formattedError = str_replace('item description', 'Item Description', $formattedError);
+                        $formattedError = str_replace('ship to', 'Ship To', $formattedError);
+                        $formattedError = str_replace('supplier id', 'Supplier', $formattedError);
+                    @endphp
+                    <li>{{ $formattedError }}</li>
                 @endforeach
             </ul>
         </div>
@@ -303,7 +324,7 @@
                                        style="width:120px; padding:6px; border:1px solid #ddd; border-radius:4px; font-size:12px; text-align:right; background:#f8f9fa;">
                             </td>
                             <td style="padding:6px 8px;">
-                                <input type="number" step="0.001" min="0" name="items[0][po_quantity]" class="po_quantity"
+                                <input type="number" step="1" min="1" name="items[0][po_quantity]" class="po_quantity"
                                        style="width:100px; padding:6px; border:1px solid #ddd; border-radius:4px; font-size:12px; text-align:right;">
                             </td>
                             <td style="padding:6px 8px;">
@@ -345,9 +366,6 @@
                         </tr>
                     </tbody>
                 </table>
-                <small style="color:#666; display:block; margin-top:10px;">
-                    Click <strong>Add Product</strong> button to add new item rows and <strong>trash icon</strong> to remove rows.
-                </small>
             </div>
         </div>
 
