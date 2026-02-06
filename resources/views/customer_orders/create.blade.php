@@ -74,8 +74,8 @@
                            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; background: #f8f9fa;">
                 </div>
                 <div>
-                    <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Customer PO No</label>
-                    <input type="text" name="customer_po_no" value="{{ old('customer_po_no') }}"
+                    <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Customer PO No <span style="color:red;">*</span></label>
+                    <input type="text" name="customer_po_no" value="{{ old('customer_po_no') }}" required
                            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
                 </div>
             </div>

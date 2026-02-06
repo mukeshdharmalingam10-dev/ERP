@@ -502,8 +502,20 @@
                     @endif
                 </div>
 
-                 <div class="menu-item-header" on
-                 click="toggleMastersMenu()" id="mastersHeader" title="Masters">
+                {{-- Production Module --}}
+                <div class="menu-item-header" onclick="toggleProductionMenu()" id="productionHeader" style="margin-top: 10px;" title="Production">
+                    <i class="fas fa-industry menu-header-icon"></i>
+                    <span>Production</span>
+                    <i class="fas fa-chevron-down arrow"></i>
+                </div>
+                <div class="menu-sub-items" id="productionMenu">
+                    <a href="{{ route('work-orders.index') }}" class="menu-item" title="Work Order">
+                        <i class="fas fa-clipboard-list"></i>
+                        <span>Work Order</span>
+                    </a>
+                </div>
+
+                 <div class="menu-item-header" onclick="toggleMastersMenu()" id="mastersHeader" title="Masters">
                      <i class="fas fa-database menu-header-icon"></i>
                     <span>Masters</span>
                     <i class="fas fa-chevron-down arrow"></i>
@@ -833,6 +845,19 @@
             }
         }
 
+        // Toggle Production menu
+        function toggleProductionMenu() {
+            const productionMenu = document.getElementById('productionMenu');
+            const productionHeader = document.getElementById('productionHeader');
+            
+            if (productionMenu && productionHeader) {
+                productionMenu.classList.toggle('collapsed');
+                productionHeader.classList.toggle('collapsed');
+                
+                localStorage.setItem('productionMenuCollapsed', productionMenu.classList.contains('collapsed'));
+            }
+        }
+
         // Toggle Settings menu
         function toggleSettingsMenu() {
             const settingsMenu = document.getElementById('settingsMenu');
@@ -926,6 +951,17 @@
                 if (storeMenu && storeHeader) {
                     storeMenu.classList.add('collapsed');
                     storeHeader.classList.add('collapsed');
+                }
+            }
+
+            // Production menu
+            const productionSavedState = localStorage.getItem('productionMenuCollapsed');
+            if (productionSavedState === 'true') {
+                const productionMenu = document.getElementById('productionMenu');
+                const productionHeader = document.getElementById('productionHeader');
+                if (productionMenu && productionHeader) {
+                    productionMenu.classList.add('collapsed');
+                    productionHeader.classList.add('collapsed');
                 }
             }
 
