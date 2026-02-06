@@ -329,4 +329,11 @@ Route::middleware(['auth'])->group(function () {
 
     // Customer Complaint Register (Tender Sales Master)
     Route::resource('customer-complaints', App\Http\Controllers\CustomerComplaintController::class);
+
+    // Production Module - Work Orders
+    Route::resource('work-orders', App\Http\Controllers\WorkOrderController::class);
+    Route::get('work-orders-po-options', [App\Http\Controllers\WorkOrderController::class, 'getPoOptions'])->name('work-orders.po-options');
+    Route::get('work-orders-title-from-po', [App\Http\Controllers\WorkOrderController::class, 'getTitleFromPo'])->name('work-orders.title-from-po');
+    Route::get('work-orders-raw-material-unit', [App\Http\Controllers\WorkOrderController::class, 'getRawMaterialUnit'])->name('work-orders.raw-material-unit');
+    Route::get('work-orders-next-no', [App\Http\Controllers\WorkOrderController::class, 'getNextWorkOrderNo'])->name('work-orders.next-no');
 });
