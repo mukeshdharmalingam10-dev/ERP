@@ -152,13 +152,14 @@
         <div id="qty-selection-section" style="background:#f1f5f9; border:1px solid #dee2e6; border-radius:8px; margin-bottom:20px; padding:20px; position:relative;">
             <span style="position:absolute; right:50px; top:15px; font-size:12px; color:#667eea; margin-right:46px;">(Based on the selection, the contents change)</span>
             @if(!$viewOnly)<button type="button" id="addQtyBlockBtn" style="display:none; position:absolute; right:15px; top:12px; width:36px; height:36px; background:#667eea; color:white; border:none; border-radius:6px; font-size:20px; line-height:1; cursor:pointer; padding:0; align-items:center; justify-content:center;" title="Add set block">+</button>@endif
-            <h3 style="margin:0 0 15px 0; font-size:16px; color:#333;">Quantity Selection</h3>
 
-            {{-- Product Name — moved here from "Title & Worker Details" section --}}
+            {{-- Product Name — at the very top of this container, above the section heading --}}
             <div style="margin-bottom:16px;">
                 <label style="display:block; margin-bottom:6px; font-weight:500;">Product Name</label>
                 <input type="text" name="product_name" value="{{ old('product_name', $workOrder->product_name) }}" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:6px;"{{ $dis }}>
             </div>
+
+            <h3 style="margin:0 0 15px 0; font-size:16px; color:#333;">Quantity Selection</h3>
 
             <div style="margin-bottom:15px;">
                 <label style="margin-right:20px;"><input type="radio" name="quantity_type" value="Sets" {{ old('quantity_type', $workOrder->quantity_type) == 'Sets' ? 'checked' : '' }}{{ $dis }}> SETS</label>

@@ -10,10 +10,10 @@
         <h2 style="color: #333; font-size: 24px; margin: 0;">Work Order Details</h2>
         <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
 
-            {{-- Edit --}}
-            <a href="{{ route('work-orders.edit', $workOrder->id) }}"
-               style="padding: 10px 20px; background: #ffc107; color: #333; text-decoration: none; border-radius: 5px; font-weight: 500; display: inline-flex; align-items: center; gap: 8px;">
-                <i class="fas fa-edit"></i> Edit
+            {{-- BACK --}}
+            <a href="{{ route('work-orders.index') }}"
+               style="padding: 10px 20px; background: #6c757d; color: white; text-decoration: none; border-radius: 5px; font-weight: 500; display: inline-flex; align-items: center; gap: 8px;">
+                <i class="fas fa-arrow-left"></i> Back
             </a>
 
             {{-- Generate PDF --}}
@@ -22,17 +22,21 @@
                 <i class="fas fa-file-pdf"></i> Generate PDF
             </a>
 
-            {{-- Back --}}
-            <a href="{{ route('work-orders.index') }}"
-               style="padding: 10px 20px; background: #6c757d; color: white; text-decoration: none; border-radius: 5px; font-weight: 500; display: inline-flex; align-items: center; gap: 8px;">
-                <i class="fas fa-arrow-left"></i> Back
-            </a>
-
-            {{-- DELETE — opens confirmation modal --}}
-            <button type="button" id="openDeleteModal"
+            {{-- DELETE — triggers JS confirm(), then submits hidden form --}}
+            <button type="button"
+                    onclick="return woConfirmDelete()"
                     style="padding: 10px 20px; background: #dc3545; color: white; border: none; border-radius: 5px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
                 <i class="fas fa-trash"></i> Delete
             </button>
+
+            {{-- Hidden delete form — submitted only after JS confirmation --}}
+            <form id="woDeleteForm"
+                  action="{{ route('work-orders.destroy', $workOrder->id) }}"
+                  method="POST"
+                  style="display: none;">
+                @csrf
+                @method('DELETE')
+            </form>
         </div>
     </div>
 
@@ -175,105 +179,38 @@
     </div>{{-- /.detail card --}}
 </div>
 
-{{-- ════════════════════════════════════════════════════
-     DELETE CONFIRMATION MODAL
-     ════════════════════════════════════════════════════ --}}
-<div id="deleteModal"
-     style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-            background:rgba(0,0,0,0.5); z-index:9999;
-            align-items:center; justify-content:center;">
-    <div style="background:#fff; border-radius:10px; padding:30px 36px; max-width:420px; width:90%;
-                box-shadow:0 8px 32px rgba(0,0,0,0.22); text-align:center;">
-
-        {{-- Icon --}}
-        <div style="font-size:44px; color:#dc3545; margin-bottom:12px;">
-            <i class="fas fa-exclamation-triangle"></i>
-        </div>
-
-        <h3 style="color:#333; font-size:18px; margin-bottom:10px;">Confirm Delete</h3>
-        <p style="color:#555; font-size:14px; margin-bottom:6px;">
-            Are you sure you want to delete this work order?
-        </p>
-        <p style="color:#dc3545; font-size:13px; font-weight:600; margin-bottom:24px;">
-            {{ $workOrder->work_order_no }}
-        </p>
-        <p style="color:#888; font-size:12px; margin-bottom:24px;">
-            This action cannot be undone.
-        </p>
-
-        <div style="display:flex; gap:12px; justify-content:center;">
-            {{-- Cancel --}}
-            <button type="button" id="cancelDelete"
-                    style="padding:10px 28px; background:#6c757d; color:white; border:none;
-                           border-radius:6px; font-size:14px; font-weight:500; cursor:pointer;">
-                <i class="fas fa-times"></i> Cancel
-            </button>
-
-            {{-- Confirm delete — real POST form submission --}}
-            <form id="deleteForm"
-                  action="{{ route('work-orders.destroy', $workOrder->id) }}"
-                  method="POST"
-                  style="display:inline;">
-                @csrf
-                @method('DELETE')
-                <button type="submit"
-                        style="padding:10px 28px; background:#dc3545; color:white; border:none;
-                               border-radius:6px; font-size:14px; font-weight:500; cursor:pointer;">
-                    <i class="fas fa-trash"></i> Yes, Delete
-                </button>
-            </form>
-        </div>
-    </div>
-</div>
-
 @push('scripts')
 <script>
 (function () {
     'use strict';
 
-    var modal       = document.getElementById('deleteModal');
-    var openBtn     = document.getElementById('openDeleteModal');
-    var cancelBtn   = document.getElementById('cancelDelete');
-
-    // Open modal
-    function openModal() {
-        modal.style.display = 'flex';
-        document.body.style.overflow = 'hidden';   // prevent background scroll
-    }
-
-    // Close modal
-    function closeModal() {
-        modal.style.display = 'none';
-        document.body.style.overflow = '';
-        // Clean up ?delete=1 from URL without reloading
-        if (window.history && window.history.replaceState) {
-            var url = window.location.href.replace(/[?&]delete=1/, '');
-            window.history.replaceState(null, '', url);
+    /**
+     * Called by the Delete button onclick.
+     * Shows browser confirm() dialog.
+     * If confirmed  → submits the hidden DELETE form.
+     * If cancelled  → does nothing, stays on view page.
+     */
+    function woConfirmDelete() {
+        var confirmed = confirm('Are you sure you want to delete this work order?');
+        if (confirmed) {
+            document.getElementById('woDeleteForm').submit();
         }
+        return false; // always prevent any default button action
     }
 
-    if (openBtn)   openBtn.addEventListener('click', openModal);
-    if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+    // Expose to global scope so inline onclick can reach it
+    window.woConfirmDelete = woConfirmDelete;
 
-    // Close on backdrop click
-    if (modal) {
-        modal.addEventListener('click', function (e) {
-            if (e.target === modal) closeModal();
-        });
-    }
-
-    // Close on Escape key
-    document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape' && modal && modal.style.display === 'flex') {
-            closeModal();
-        }
-    });
-
-    // Auto-open modal when redirected from list with ?delete=1
+    // Auto-trigger confirmation when redirected from list with ?delete=1
     document.addEventListener('DOMContentLoaded', function () {
         var params = new URLSearchParams(window.location.search);
         if (params.get('delete') === '1') {
-            openModal();
+            // Clean up the URL param first so a page refresh won't re-trigger
+            if (window.history && window.history.replaceState) {
+                var cleanUrl = window.location.href.replace(/[?&]delete=1/, '');
+                window.history.replaceState(null, '', cleanUrl);
+            }
+            woConfirmDelete();
         }
     });
 }());
