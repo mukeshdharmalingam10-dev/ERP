@@ -186,31 +186,36 @@
 
     /**
      * Called by the Delete button onclick.
-     * Shows browser confirm() dialog.
-     * If confirmed  → submits the hidden DELETE form.
-     * If cancelled  → does nothing, stays on view page.
+     * Shows native browser confirm() dialog.
+     *
+     * IMPORTANT: We use HTMLFormElement.prototype.submit.call() instead of
+     * form.submit() to bypass the global form-submit handler in dashboard.blade.php
+     * which sets data-submitting="true" and would block a second submit attempt.
      */
-    function woConfirmDelete() {
+    window.woConfirmDelete = function () {
         var confirmed = confirm('Are you sure you want to delete this work order?');
         if (confirmed) {
-            document.getElementById('woDeleteForm').submit();
+            var form = document.getElementById('woDeleteForm');
+            if (form) {
+                // Reset any submitting guard set by the global handler
+                form.removeAttribute('data-submitting');
+                // Use native submit to bypass any jQuery / global event listeners
+                HTMLFormElement.prototype.submit.call(form);
+            }
         }
-        return false; // always prevent any default button action
-    }
+        return false; // prevent any default action on the trigger button
+    };
 
-    // Expose to global scope so inline onclick can reach it
-    window.woConfirmDelete = woConfirmDelete;
-
-    // Auto-trigger confirmation when redirected from list with ?delete=1
+    // Auto-trigger when redirected from list with ?delete=1
     document.addEventListener('DOMContentLoaded', function () {
         var params = new URLSearchParams(window.location.search);
         if (params.get('delete') === '1') {
-            // Clean up the URL param first so a page refresh won't re-trigger
+            // Remove ?delete=1 from URL first so a hard refresh won't re-trigger
             if (window.history && window.history.replaceState) {
                 var cleanUrl = window.location.href.replace(/[?&]delete=1/, '');
                 window.history.replaceState(null, '', cleanUrl);
             }
-            woConfirmDelete();
+            window.woConfirmDelete();
         }
     });
 }());

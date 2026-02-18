@@ -23,34 +23,52 @@
         }
 
         /* ── Header ────────────────────────────────────────── */
-        .header-table {
+        .header-wrapper {
             width: 100%;
-            border-bottom: 2px solid #333;
-            padding-bottom: 10px;
-            margin-bottom: 12px;
+            margin-bottom: 0;
         }
-        .header-table td { vertical-align: top; }
+        .header-center {
+            text-align: center;
+            padding-bottom: 8px;
+        }
         .company-name {
-            font-size: 16px;
+            font-size: 18px;
             font-weight: bold;
             color: #111;
+            letter-spacing: 0.3px;
+        }
+        .company-cert {
+            font-size: 10px;
+            color: #333;
+            margin-top: 2px;
+            line-height: 1.6;
         }
         .company-address {
             font-size: 10px;
             color: #444;
-            margin-top: 3px;
-            line-height: 1.5;
+            margin-top: 4px;
+            line-height: 1.7;
         }
-        .doc-title-cell { text-align: right; width: 40%; }
+        .header-divider {
+            border: none;
+            border-top: 2px solid #333;
+            margin: 6px 0 0 0;
+        }
+        /* Doc title row below the divider */
+        .doc-title-row {
+            width: 100%;
+            margin-top: 6px;
+            margin-bottom: 10px;
+        }
+        .doc-title-row td { vertical-align: middle; }
         .doc-title-box {
             display: inline-block;
             border: 2px solid #333;
-            padding: 5px 10px;
-            font-size: 13px;
+            padding: 4px 10px;
+            font-size: 12px;
             font-weight: bold;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            margin-bottom: 4px;
         }
         .doc-wo-no {
             font-size: 11px;
@@ -170,31 +188,79 @@
 <div class="page">
 
     {{-- ═══════════ HEADER ═══════════ --}}
-    <table class="header-table" cellspacing="0" cellpadding="0">
-        <tr>
-            <td>
-                <div class="company-name">
-                    {{ $company->company_name ?? config('app.name', 'Company Name') }}
+    <div class="header-wrapper">
+
+        {{-- Centered company block --}}
+        <div class="header-center">
+
+            {{-- Company name --}}
+            <div class="company-name">
+                {{ $company->company_name ?? config('app.name', 'Company Name') }}
+            </div>
+
+            @if($company)
+                {{-- Certification lines (use DB fields if present, else hard-coded fallbacks) --}}
+                @php
+                    $cert1 = $company->certification_1 ?? 'An IRIS Certified Company';
+                    $cert2 = $company->certification_2 ?? 'An ISO 9001:2015 Certified Company';
+                @endphp
+                <div class="company-cert">
+                    {{ $cert1 }}<br>
+                    {{ $cert2 }}
                 </div>
-                @if($company)
+
+                {{-- Address block --}}
                 <div class="company-address">
-                    @if($company->address_line_1){{ $company->address_line_1 }}@endif
-                    @if($company->address_line_2), {{ $company->address_line_2 }}@endif
-                    @if($company->city)<br>{{ $company->city }}@endif
-                    @if($company->state), {{ $company->state }}@endif
-                    @if($company->pincode) - {{ $company->pincode }}@endif
-                    @if($company->phone)<br>Phone: {{ $company->phone }}@endif
-                    @if($company->email) &nbsp;|&nbsp; {{ $company->email }}@endif
-                    @if($company->gstin)<br>GSTIN: {{ $company->gstin }}@endif
+                    @php
+                        $addrParts = array_filter([
+                            $company->address_line_1 ?? null,
+                            $company->address_line_2 ?? null,
+                        ]);
+                        $cityState = trim(
+                            ($company->city   ?? '') . ', ' .
+                            ($company->state  ?? '')
+                        );
+                        $cityState = rtrim(ltrim($cityState, ', '), ', ');
+                        if ($company->pincode) {
+                            $cityState = $cityState ? $cityState . ' - ' . $company->pincode : $company->pincode;
+                        }
+                        $phoneMobile = '';
+                        if ($company->phone)  { $phoneMobile .= 'Phone: ' . $company->phone; }
+                        if ($company->mobile ?? null) {
+                            $phoneMobile .= ($phoneMobile ? '  Mobile: ' : 'Mobile: ') . $company->mobile;
+                        }
+                        $emailLine = $company->email ? 'e-mail: ' . $company->email : '';
+                        $gstin     = $company->gstin ? 'GSTIN: ' . $company->gstin : '';
+                    @endphp
+
+                    @if(count($addrParts))
+                        {{ implode(', ', $addrParts) }}<br>
+                    @endif
+                    @if($cityState) {{ $cityState }}<br> @endif
+                    @if($phoneMobile) {{ $phoneMobile }}<br> @endif
+                    @if($emailLine)   {{ $emailLine }}<br> @endif
+                    @if($gstin)       {{ $gstin }}<br>   @endif
                 </div>
-                @endif
-            </td>
-            <td class="doc-title-cell">
-                <div class="doc-title-box">Production Work Order</div><br>
-                <span class="doc-wo-no">{{ $workOrder->work_order_no }}</span>
-            </td>
-        </tr>
-    </table>
+            @endif
+
+        </div>{{-- /.header-center --}}
+
+        {{-- Horizontal rule separating company info from doc title --}}
+        <hr class="header-divider">
+
+        {{-- Doc title row: "Production Work Order" left, WO No right --}}
+        <table class="doc-title-row" cellspacing="0" cellpadding="0">
+            <tr>
+                <td>
+                    <div class="doc-title-box">Production Work Order</div>
+                </td>
+                <td style="text-align:right;">
+                    <span class="doc-wo-no">{{ $workOrder->work_order_no }}</span>
+                </td>
+            </tr>
+        </table>
+
+    </div>{{-- /.header-wrapper --}}
 
     {{-- ═══════════ WORK ORDER DETAILS ═══════════ --}}
     <div class="section-bar">Work Order Details</div>
