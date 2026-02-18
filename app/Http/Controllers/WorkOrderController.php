@@ -330,6 +330,31 @@ class WorkOrderController extends Controller
         return redirect()->route('work-orders.index')->with('success', 'Work order updated successfully.');
     }
 
+    public function generatePdf($id)
+    {
+        $query = WorkOrder::with([
+            'rawMaterials.rawMaterial.unit',
+            'customerOrder.tender',
+            'proformaInvoice',
+            'creator',
+        ]);
+        $query = $this->applyBranchFilter($query, WorkOrder::class);
+        $workOrder = $query->findOrFail($id);
+
+        $company = \App\Models\CompanyInformation::first();
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView(
+            'production.work_orders.pdf',
+            compact('workOrder', 'company')
+        );
+
+        $pdf->setPaper('A4', 'portrait');
+
+        $filename = 'WorkOrder-' . preg_replace('/[^A-Za-z0-9\-_]/', '_', $workOrder->work_order_no) . '.pdf';
+
+        return $pdf->download($filename);
+    }
+
     public function printWorkOrder($id)
     {
         $query = WorkOrder::with([

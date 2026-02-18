@@ -53,7 +53,20 @@
                     <select name="po_id" id="po_select" required style="width:100%; padding:10px; border:1px solid #ddd; border-radius:6px;"{{ $dis }}>
                         <option value="">Select PO</option>
                         @foreach($customerOrders as $co)
-                            <option value="{{ $co->id }}" data-type="customer_order" data-sales-type="Tender" data-po="{{ $co->customer_po_no ?? $co->production_order_no ?? $co->order_no ?? '' }}" data-cust-po="{{ $co->customer_po_no ?? '' }}" {{ old('po_id') == $co->id && old('po_type') == 'customer_order' ? 'selected' : '' }}>{{ $co->customer_po_no ?? $co->production_order_no ?? $co->order_no ?? 'CO-'.$co->id }}</option>
+                            @php
+                                $tenderNo = optional($co->tender)->tender_no ?? null;
+                                $coNo     = $co->production_order_no ?? $co->order_no ?? 'CO-' . $co->id;
+                                // Display: "TND00004 / COO001"  — or just the CO no when no tender
+                                $displayLabel = $tenderNo ? $tenderNo . ' / ' . $coNo : $coNo;
+                            @endphp
+                            <option value="{{ $co->id }}"
+                                    data-type="customer_order"
+                                    data-sales-type="Tender"
+                                    data-po="{{ $co->customer_po_no ?? $co->production_order_no ?? $co->order_no ?? '' }}"
+                                    data-cust-po="{{ $co->customer_po_no ?? '' }}"
+                                    {{ old('po_id') == $co->id && old('po_type') == 'customer_order' ? 'selected' : '' }}>
+                                {{ $displayLabel }}
+                            </option>
                         @endforeach
                         @foreach($proformaInvoices as $pi)
                             <option value="{{ $pi->id }}" data-type="proforma_invoice" data-sales-type="Enquiry" data-po="{{ $pi->invoice_no ?? '' }}" data-cust-po="" {{ old('po_id') == $pi->id && old('po_type') == 'proforma_invoice' ? 'selected' : '' }}>{{ $pi->invoice_no ?? 'PI-'.$pi->id }}</option>
@@ -132,10 +145,6 @@
                         @endforeach
                     </select>
                 </div>
-                <div style="grid-column:1/-1;">
-                    <label style="display:block; margin-bottom:6px; font-weight:500;">Product Name</label>
-                    <input type="text" name="product_name" value="{{ old('product_name', $workOrder->product_name) }}" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:6px;"{{ $dis }}>
-                </div>
             </div>
         </div>
 
@@ -144,6 +153,13 @@
             <span style="position:absolute; right:50px; top:15px; font-size:12px; color:#667eea; margin-right:46px;">(Based on the selection, the contents change)</span>
             @if(!$viewOnly)<button type="button" id="addQtyBlockBtn" style="display:none; position:absolute; right:15px; top:12px; width:36px; height:36px; background:#667eea; color:white; border:none; border-radius:6px; font-size:20px; line-height:1; cursor:pointer; padding:0; align-items:center; justify-content:center;" title="Add set block">+</button>@endif
             <h3 style="margin:0 0 15px 0; font-size:16px; color:#333;">Quantity Selection</h3>
+
+            {{-- Product Name — moved here from "Title & Worker Details" section --}}
+            <div style="margin-bottom:16px;">
+                <label style="display:block; margin-bottom:6px; font-weight:500;">Product Name</label>
+                <input type="text" name="product_name" value="{{ old('product_name', $workOrder->product_name) }}" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:6px;"{{ $dis }}>
+            </div>
+
             <div style="margin-bottom:15px;">
                 <label style="margin-right:20px;"><input type="radio" name="quantity_type" value="Sets" {{ old('quantity_type', $workOrder->quantity_type) == 'Sets' ? 'checked' : '' }}{{ $dis }}> SETS</label>
                 <label style="margin-right:20px;"><input type="radio" name="quantity_type" value="Sub Sets" {{ old('quantity_type', $workOrder->quantity_type) == 'Sub Sets' ? 'checked' : '' }}{{ $dis }}> SUB SETS</label>
@@ -334,20 +350,19 @@
                     <i class="fas fa-list"></i> List
                 </a>
 
-                {{-- PRINT button --}}
+                {{-- Generate PDF button --}}
                 @if($isEdit)
-                    {{-- Edit page: work order already saved → open print in new tab directly --}}
-                    <a href="{{ route('work-orders.print', $workOrder->id) }}"
-                       target="_blank"
+                    {{-- Edit page: work order already saved → download PDF directly --}}
+                    <a href="{{ route('work-orders.generate-pdf', $workOrder->id) }}"
                        style="padding:12px 24px; background:#667eea; color:white; text-decoration:none; border-radius:6px; font-weight:500; display:inline-flex; align-items:center; gap:6px;">
-                        <i class="fas fa-print"></i> PRINT
+                        <i class="fas fa-file-pdf"></i> Generate PDF
                     </a>
                 @else
                     {{-- Create page: record not yet saved → alert the user --}}
                     <button type="button"
-                            onclick="alert('Please save the work order before printing.')"
+                            onclick="alert('Please save the work order before generating a PDF.')"
                             style="padding:12px 24px; background:#667eea; color:white; border:none; border-radius:6px; font-weight:500; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
-                        <i class="fas fa-print"></i> PRINT
+                        <i class="fas fa-file-pdf"></i> Generate PDF
                     </button>
                 @endif
 

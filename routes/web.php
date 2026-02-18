@@ -337,4 +337,5 @@ Route::middleware(['auth'])->group(function () {
     Route::get('work-orders-raw-material-unit', [App\Http\Controllers\WorkOrderController::class, 'getRawMaterialUnit'])->name('work-orders.raw-material-unit');
     Route::get('work-orders-next-no', [App\Http\Controllers\WorkOrderController::class, 'getNextWorkOrderNo'])->name('work-orders.next-no');
     Route::get('work-orders/{workOrder}/print', [App\Http\Controllers\WorkOrderController::class, 'printWorkOrder'])->name('work-orders.print');
+    Route::get('work-orders/{workOrder}/generate-pdf', [App\Http\Controllers\WorkOrderController::class, 'generatePdf'])->name('work-orders.generate-pdf');
 });
