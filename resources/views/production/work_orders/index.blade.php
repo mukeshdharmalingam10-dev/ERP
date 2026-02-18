@@ -29,9 +29,9 @@
         </div>
     @endif
 
-    @if($workOrders->count() > 0)
+    @if($displayGroups->count() > 0)
         <div style="overflow-x: auto;">
-            <table style="width: 100%; border-collapse: collapse;">
+            <table style="width: 100%; border-collapse: collapse;" id="workOrderTable">
                 <thead>
                     <tr style="background: #f8f9fa; border-bottom: 2px solid #dee2e6;">
                         <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">S.NO</th>
@@ -42,18 +42,32 @@
                         <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">TITLE</th>
                         <th style="padding: 12px; text-align: left; color: #333; font-weight: 600;">Work Order No</th>
                         <th style="padding: 12px; text-align: center; color: #333; font-weight: 600;">Actions</th>
+                        <th style="padding: 12px; text-align: center; color: #333; font-weight: 600;">Expand</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($workOrders as $wo)
-                        <tr style="border-bottom: 1px solid #dee2e6;">
-                            <td style="padding: 12px; color: #666;">{{ ($workOrders->currentPage() - 1) * $workOrders->perPage() + $loop->iteration }}</td>
+                    @foreach($displayGroups as $groupIndex => $group)
+                        @php
+                            $wo          = $group['latest'];
+                            $children    = $group['children'];
+                            $hasChildren = $children->count() > 0;
+                            $groupId     = 'wo-group-' . $groupIndex;
+                            $sno         = ($workOrders->currentPage() - 1) * $workOrders->perPage() + $groupIndex + 1;
+                        @endphp
+
+                        {{-- ── MAIN (collapsed) ROW ── --}}
+                        <tr class="wo-main-row" data-group="{{ $groupId }}"
+                            style="border-bottom: {{ $hasChildren ? '0' : '1px' }} solid #dee2e6; background: #fff;">
+
+                            <td style="padding: 12px; color: #666;">{{ $sno }}</td>
                             <td style="padding: 12px; color: #333;">{{ $wo->production_order_no ?? 'N/A' }}</td>
                             <td style="padding: 12px; color: #333;">{{ $wo->customer_po_no ?? 'N/A' }}</td>
                             <td style="padding: 12px; color: #333;">{{ $wo->sales_type ?? 'N/A' }}</td>
                             <td style="padding: 12px; color: #666;">{{ $wo->created_at->format('d-m-Y') }}</td>
                             <td style="padding: 12px; color: #333;">{{ Str::limit($wo->title ?? 'N/A', 40) }}</td>
                             <td style="padding: 12px; color: #333; font-weight: 500;">{{ $wo->work_order_no }}</td>
+
+                            {{-- Actions --}}
                             <td style="padding: 12px; text-align: center;">
                                 <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
                                     <a href="{{ route('work-orders.edit', $wo->id) }}" style="padding: 6px 14px; background: #667eea; color: white; text-decoration: none; border-radius: 15px; font-size: 12px;">
@@ -71,7 +85,66 @@
                                     </form>
                                 </div>
                             </td>
+
+                            {{-- Expand toggle --}}
+                            <td style="padding: 12px; text-align: center;">
+                                @if($hasChildren)
+                                    <button class="wo-expand-btn"
+                                            data-group="{{ $groupId }}"
+                                            title="Expand / Collapse"
+                                            style="background: none; border: none; cursor: pointer; padding: 4px 8px; border-radius: 6px; color: #667eea; font-size: 18px; line-height: 1; transition: transform 0.2s;">
+                                        <i class="fas fa-chevron-down"></i>
+                                    </button>
+                                @else
+                                    <span style="color: #ccc; font-size: 13px;">—</span>
+                                @endif
+                            </td>
                         </tr>
+
+                        @if($hasChildren)
+                            {{-- ── CHILD ROWS (hidden by default) ── --}}
+                            @foreach($children as $child)
+                                <tr class="wo-child-row" data-group="{{ $groupId }}"
+                                    style="display: none; border-bottom: 1px solid #f0f0f0; background: #fafbff;">
+
+                                    <td style="padding: 10px 12px; color: #999;"></td>
+                                    <td style="padding: 10px 12px; color: #aaa;"></td>
+                                    <td style="padding: 10px 12px; color: #aaa;"></td>
+                                    <td style="padding: 10px 12px; color: #555;">{{ $child->sales_type ?? 'N/A' }}</td>
+                                    <td style="padding: 10px 12px; color: #888;">{{ $child->created_at->format('d-m-Y') }}</td>
+                                    <td style="padding: 10px 12px; color: #555;">{{ Str::limit($child->title ?? 'N/A', 40) }}</td>
+                                    <td style="padding: 10px 12px; padding-left: 28px; color: #444; font-weight: 500; border-left: 3px solid #667eea;">
+                                        {{ $child->work_order_no }}
+                                    </td>
+
+                                    <td style="padding: 10px 12px; text-align: center;">
+                                        <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+                                            <a href="{{ route('work-orders.edit', $child->id) }}" style="padding: 5px 12px; background: #667eea; color: white; text-decoration: none; border-radius: 15px; font-size: 12px;">
+                                                <i class="fas fa-edit"></i> EDIT
+                                            </a>
+                                            <a href="{{ route('work-orders.show', $child->id) }}" style="padding: 5px 12px; background: #28a745; color: white; text-decoration: none; border-radius: 15px; font-size: 12px;">
+                                                <i class="fas fa-eye"></i> VIEW
+                                            </a>
+                                            <form action="{{ route('work-orders.destroy', $child->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this work order?');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" style="padding: 5px 12px; background: #dc3545; color: white; border: none; border-radius: 15px; font-size: 12px; cursor: pointer;">
+                                                    <i class="fas fa-trash"></i> DELETE
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+
+                                    <td style="padding: 10px 12px;"></td>
+                                </tr>
+                            @endforeach
+
+                            {{-- Spacer row to visually separate groups when expanded --}}
+                            <tr class="wo-group-spacer" data-group="{{ $groupId }}" style="display: none;">
+                                <td colspan="9" style="padding: 0; height: 4px; background: #eef0f8;"></td>
+                            </tr>
+                        @endif
+
                     @endforeach
                 </tbody>
             </table>
@@ -92,27 +165,66 @@
 
 @push('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const searchInput = document.getElementById('search');
-    const searchForm = document.getElementById('searchForm');
-    let searchTimeout;
-    if (searchInput && searchForm) {
-        searchForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const formData = new FormData(searchForm);
-            const params = new URLSearchParams(formData);
-            window.location.replace('{{ route("work-orders.index") }}?' + params.toString());
-        });
-        searchInput.addEventListener('input', function() {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(function() {
-                const formData = new FormData(searchForm);
-                const params = new URLSearchParams(formData);
+(function () {
+    'use strict';
+
+    document.addEventListener('DOMContentLoaded', function () {
+
+        // ── Search with debounce ──────────────────────────────────────────────
+        var searchInput = document.getElementById('search');
+        var searchForm  = document.getElementById('searchForm');
+        var searchTimeout;
+
+        if (searchInput && searchForm) {
+            searchForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+                var params = new URLSearchParams(new FormData(searchForm));
                 window.location.replace('{{ route("work-orders.index") }}?' + params.toString());
-            }, 500);
+            });
+
+            searchInput.addEventListener('input', function () {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(function () {
+                    var params = new URLSearchParams(new FormData(searchForm));
+                    window.location.replace('{{ route("work-orders.index") }}?' + params.toString());
+                }, 500);
+            });
+        }
+
+        // ── Expand / Collapse toggling ────────────────────────────────────────
+        document.querySelectorAll('.wo-expand-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var groupId  = btn.getAttribute('data-group');
+                var icon     = btn.querySelector('i');
+                var expanded = btn.getAttribute('data-expanded') === '1';
+
+                // Toggle child rows for THIS group only
+                document.querySelectorAll('.wo-child-row[data-group="' + groupId + '"]').forEach(function (row) {
+                    row.style.display = expanded ? 'none' : 'table-row';
+                });
+
+                // Toggle spacer row
+                var spacer = document.querySelector('.wo-group-spacer[data-group="' + groupId + '"]');
+                if (spacer) {
+                    spacer.style.display = expanded ? 'none' : 'table-row';
+                }
+
+                // Toggle main row bottom border
+                var mainRow = document.querySelector('.wo-main-row[data-group="' + groupId + '"]');
+                if (mainRow) {
+                    mainRow.style.borderBottom = expanded ? '0' : '1px solid #dee2e6';
+                }
+
+                // Rotate arrow icon
+                if (icon) {
+                    icon.style.transform = expanded ? '' : 'rotate(180deg)';
+                }
+
+                btn.setAttribute('data-expanded', expanded ? '0' : '1');
+            });
         });
-    }
-});
+    });
+}());
 </script>
 @endpush
 @endsection

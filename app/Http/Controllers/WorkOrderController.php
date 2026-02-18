@@ -19,38 +19,96 @@ class WorkOrderController extends Controller
 {
     public function index(Request $request)
     {
-        $query = WorkOrder::with(['customerOrder', 'proformaInvoice', 'creator']);
-        $query = $this->applyBranchFilter($query, WorkOrder::class);
+        $search = $request->filled('search') ? $request->get('search') : null;
 
-        if ($request->filled('search')) {
-            $search = $request->get('search');
-            $query->where(function ($q) use ($search) {
+        // Step 1: Find the latest work order id per (production_order_no, customer_po_no) group
+        // that matches the search filter, so we can paginate groups.
+        $groupQuery = WorkOrder::query()
+            ->select('production_order_no', 'customer_po_no', DB::raw('MAX(id) as latest_id'), DB::raw('COUNT(*) as group_count'));
+
+        $groupQuery = $this->applyBranchFilter($groupQuery, WorkOrder::class);
+
+        if ($search) {
+            $groupQuery->where(function ($q) use ($search) {
                 $q->where('work_orders.production_order_no', 'like', "%{$search}%")
                     ->orWhere('work_orders.customer_po_no', 'like', "%{$search}%")
-                    ->orWhere('work_orders.sales_type', 'like', "%{$search}%")
                     ->orWhere('work_orders.work_order_no', 'like', "%{$search}%")
                     ->orWhere('work_orders.title', 'like', "%{$search}%")
+                    ->orWhere('work_orders.sales_type', 'like', "%{$search}%")
                     ->orWhereRaw("DATE_FORMAT(work_orders.created_at, '%d-%m-%Y') LIKE ?", ["%{$search}%"])
                     ->orWhereRaw("DATE_FORMAT(work_orders.created_at, '%Y-%m-%d') LIKE ?", ["%{$search}%"]);
             });
         }
 
-        $sortBy = $request->get('sort_by', 'id');
-        $sortOrder = $request->get('sort_order', 'desc');
-        if (!in_array($sortOrder, ['asc', 'desc'])) {
-            $sortOrder = 'desc';
-        }
+        $groupQuery->groupBy('production_order_no', 'customer_po_no')
+                   ->orderByDesc('latest_id');
 
-        $allowedSort = ['id', 'production_order_no', 'customer_po_no', 'sales_type', 'work_order_no', 'title', 'created_at'];
-        if (in_array($sortBy, $allowedSort)) {
-            $query->orderBy('work_orders.' . $sortBy, $sortOrder);
+        $groups = $groupQuery->paginate(15)->withQueryString();
+
+        // Step 2: Fetch all work orders belonging to these groups so we can build child rows
+        $latestIds = $groups->pluck('latest_id')->filter()->all();
+        $groupKeys = $groups->map(fn($g) => [
+            'po'      => $g->production_order_no,
+            'cust_po' => $g->customer_po_no,
+        ])->all();
+
+        // Build a query to get all work orders for these groups
+        $allWoQuery = WorkOrder::with(['customerOrder', 'proformaInvoice', 'creator']);
+        $allWoQuery = $this->applyBranchFilter($allWoQuery, WorkOrder::class);
+
+        if (!empty($groupKeys)) {
+            $allWoQuery->where(function ($q) use ($groupKeys) {
+                foreach ($groupKeys as $gk) {
+                    $q->orWhere(function ($inner) use ($gk) {
+                        $inner->where('production_order_no', $gk['po'])
+                              ->where('customer_po_no', $gk['cust_po']);
+                    });
+                }
+            });
         } else {
-            $query->orderBy('work_orders.id', $sortOrder);
+            $allWoQuery->whereRaw('1=0');
         }
 
-        $workOrders = $query->paginate(15)->withQueryString();
+        if ($search) {
+            // When searching, only show child rows that also match the search
+            $allWoQuery->where(function ($q) use ($search) {
+                $q->where('work_orders.production_order_no', 'like', "%{$search}%")
+                    ->orWhere('work_orders.customer_po_no', 'like', "%{$search}%")
+                    ->orWhere('work_orders.work_order_no', 'like', "%{$search}%")
+                    ->orWhere('work_orders.title', 'like', "%{$search}%")
+                    ->orWhere('work_orders.sales_type', 'like', "%{$search}%")
+                    ->orWhereRaw("DATE_FORMAT(work_orders.created_at, '%d-%m-%Y') LIKE ?", ["%{$search}%"])
+                    ->orWhereRaw("DATE_FORMAT(work_orders.created_at, '%Y-%m-%d') LIKE ?", ["%{$search}%"]);
+            });
+        }
 
-        return view('production.work_orders.index', compact('workOrders'));
+        $allWoQuery->orderByDesc('work_orders.id');
+        $allWorkOrders = $allWoQuery->get();
+
+        // Step 3: Group the fetched work orders by (production_order_no, customer_po_no)
+        $groupedWorkOrders = $allWorkOrders->groupBy(function ($wo) {
+            return $wo->production_order_no . '|||' . $wo->customer_po_no;
+        });
+
+        // Step 4: Build the final display structure: each group has a 'latest' (main row) and 'children'
+        $displayGroups = $groups->getCollection()->map(function ($group) use ($groupedWorkOrders) {
+            $key = $group->production_order_no . '|||' . $group->customer_po_no;
+            $members = $groupedWorkOrders->get($key, collect());
+            // Sort by id desc — latest first
+            $sorted = $members->sortByDesc('id')->values();
+            return [
+                'latest'      => $sorted->first(),
+                'children'    => $sorted->slice(1)->values(),
+                'group_count' => $group->group_count,
+                'po'          => $group->production_order_no,
+                'cust_po'     => $group->customer_po_no,
+            ];
+        })->filter(fn($g) => $g['latest'] !== null)->values();
+
+        // Wrap back into paginator for pagination links
+        $workOrders = $groups; // paginator for links/meta
+
+        return view('production.work_orders.index', compact('workOrders', 'displayGroups'));
     }
 
     public function create(Request $request)
