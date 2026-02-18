@@ -329,9 +329,33 @@
                 <label style="display:block; margin-bottom:4px; font-weight:500;">Created by</label>
                 <input type="text" value="{{ $viewOnly ? (optional($workOrder->creator)->name ?? '') : (auth()->user()->name ?? '') }}" readonly style="padding:10px; border:1px solid #ddd; border-radius:6px; background:#f8f9fa;">
             </div>
-            <div style="display:flex; gap:10px;">
-                <a href="{{ route('work-orders.index') }}" style="padding:12px 24px; background:#6c757d; color:white; text-decoration:none; border-radius:6px; font-weight:500;">List</a>
-                @if(!$viewOnly)<button type="submit" style="padding:12px 24px; background:#28a745; color:white; border:none; border-radius:6px; font-weight:500; cursor:pointer;">SUBMIT</button>@endif
+            <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+                <a href="{{ route('work-orders.index') }}" style="padding:12px 24px; background:#6c757d; color:white; text-decoration:none; border-radius:6px; font-weight:500; display:inline-flex; align-items:center; gap:6px;">
+                    <i class="fas fa-list"></i> List
+                </a>
+
+                {{-- PRINT button --}}
+                @if($isEdit)
+                    {{-- Edit page: work order already saved → open print in new tab directly --}}
+                    <a href="{{ route('work-orders.print', $workOrder->id) }}"
+                       target="_blank"
+                       style="padding:12px 24px; background:#667eea; color:white; text-decoration:none; border-radius:6px; font-weight:500; display:inline-flex; align-items:center; gap:6px;">
+                        <i class="fas fa-print"></i> PRINT
+                    </a>
+                @else
+                    {{-- Create page: record not yet saved → alert the user --}}
+                    <button type="button"
+                            onclick="alert('Please save the work order before printing.')"
+                            style="padding:12px 24px; background:#667eea; color:white; border:none; border-radius:6px; font-weight:500; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
+                        <i class="fas fa-print"></i> PRINT
+                    </button>
+                @endif
+
+                @if(!$viewOnly)
+                    <button type="submit" style="padding:12px 24px; background:#28a745; color:white; border:none; border-radius:6px; font-weight:500; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
+                        <i class="fas fa-check"></i> SUBMIT
+                    </button>
+                @endif
             </div>
         </div>
     </form>

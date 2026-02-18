@@ -330,6 +330,22 @@ class WorkOrderController extends Controller
         return redirect()->route('work-orders.index')->with('success', 'Work order updated successfully.');
     }
 
+    public function printWorkOrder($id)
+    {
+        $query = WorkOrder::with([
+            'rawMaterials.rawMaterial.unit',
+            'customerOrder',
+            'proformaInvoice',
+            'creator',
+        ]);
+        $query = $this->applyBranchFilter($query, WorkOrder::class);
+        $workOrder = $query->findOrFail($id);
+
+        $company = \App\Models\CompanyInformation::first();
+
+        return view('production.work_orders.print', compact('workOrder', 'company'));
+    }
+
     public function destroy($id)
     {
         $query = WorkOrder::query();
