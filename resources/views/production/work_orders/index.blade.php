@@ -77,7 +77,7 @@
                                         <i class="fas fa-eye"></i> VIEW
                                     </a>
                                     {{-- DELETE redirects to View page for safe confirmation --}}
-                                    <a href="{{ route('work-orders.show', $wo->id) }}?delete=1"
+                                    <a href="{{ route('work-orders.show', $wo->id) }}"
                                        style="padding: 6px 14px; background: #dc3545; color: white; text-decoration: none; border-radius: 15px; font-size: 12px;">
                                         <i class="fas fa-trash"></i> DELETE
                                     </a>

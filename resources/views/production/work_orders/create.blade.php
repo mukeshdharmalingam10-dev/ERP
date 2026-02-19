@@ -350,18 +350,6 @@
                 <a href="{{ route('work-orders.index') }}" style="padding:12px 24px; background:#6c757d; color:white; text-decoration:none; border-radius:6px; font-weight:500; display:inline-flex; align-items:center; gap:6px;">
                     <i class="fas fa-list"></i> List
                 </a>
-                     {{-- DELETE BUTTON --}}
-            <button type="button" 
-                    onclick="return confirmDelete()"
-                    style="padding:15px 20px; background:#dc3545; color:white; border:none; border-radius:5px; font-weight:500; cursor:pointer; display:inline-flex; align-items:center; gap:8px;">
-                <i class="fas fa-trash"></i> Delete
-            </button>
-
-            {{-- HIDDEN DELETE FORM --}}
-            <form id="deleteForm" action="{{ route('work-orders.destroy', $workOrder->id) }}" method="POST" style="display:none;">
-                @csrf
-                @method('DELETE')
-            </form>
 
                 {{-- Generate PDF button --}}
                 @if($isEdit)
@@ -377,6 +365,21 @@
                             style="padding:12px 24px; background:#667eea; color:white; border:none; border-radius:6px; font-weight:500; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
                         <i class="fas fa-file-pdf"></i> Generate PDF
                     </button>
+                @endif
+
+                @if($viewOnly)
+                    {{-- DELETE BUTTON (view page only) --}}
+                    <button type="button"
+                            onclick="return confirmDelete()"
+                            style="padding:12px 24px; background:#dc3545; color:white; border:none; border-radius:6px; font-weight:500; cursor:pointer; display:inline-flex; align-items:center; gap:8px;">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+
+                    {{-- HIDDEN DELETE FORM --}}
+                    <form id="deleteForm" action="{{ route('work-orders.destroy', $workOrder->id) }}" method="POST" style="display:none;">
+                        @csrf
+                        @method('DELETE')
+                    </form>
                 @endif
 
                 @if(!$viewOnly)
@@ -395,7 +398,7 @@
      * Confirmation popup for deletion.
      * Bypasses global submit handler to ensure form submits correctly.
      */
-    function confirmDelete() {
+    window.confirmDelete = function() {
         if (confirm('Are you sure you want to delete this work order?')) {
             const form = document.getElementById('deleteForm');
             if (form) {
@@ -406,20 +409,7 @@
             }
         }
         return false;
-    }
-
-    // Handle auto-trigger if redirected from list with ?delete=1
-    document.addEventListener('DOMContentLoaded', function() {
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('delete') === '1') {
-            // Clean URL to prevent re-trigger on refresh
-            if (window.history && window.history.replaceState) {
-                const newUrl = window.location.href.replace(/[?&]delete=1/, '');
-                window.history.replaceState(null, '', newUrl);
-            }
-            confirmDelete();
-        }
-    });
+    };
 
 (function() {
     const viewOnly = @json($viewOnly ?? false);

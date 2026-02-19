@@ -206,18 +206,7 @@
         return false; // prevent any default action on the trigger button
     };
 
-    // Auto-trigger when redirected from list with ?delete=1
-    document.addEventListener('DOMContentLoaded', function () {
-        var params = new URLSearchParams(window.location.search);
-        if (params.get('delete') === '1') {
-            // Remove ?delete=1 from URL first so a hard refresh won't re-trigger
-            if (window.history && window.history.replaceState) {
-                var cleanUrl = window.location.href.replace(/[?&]delete=1/, '');
-                window.history.replaceState(null, '', cleanUrl);
-            }
-            window.woConfirmDelete();
-        }
-    });
+    // No auto-trigger. Confirmation happens only on manual button click.
 }());
 </script>
 @endpush
