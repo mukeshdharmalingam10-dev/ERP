@@ -36,27 +36,34 @@
         @csrf
         @if($isEdit) @method('PUT') @endif
 
-        {{-- Sales Details (Create only) --}}
-        @if(!$isEdit)
+        @php
+            $disSales = ($viewOnly || $isEdit) ? ' disabled' : '';
+            $currentPoId = old('po_id', $workOrder->customer_order_id ?: $workOrder->proforma_invoice_id);
+            $currentPoType = old('po_type', $workOrder->customer_order_id ? 'customer_order' : ($workOrder->proforma_invoice_id ? 'proforma_invoice' : 'customer_order'));
+        @endphp
+
+        {{-- Sales Details --}}
         <div style="background:#f8f9fa; border:1px solid #dee2e6; border-radius:8px; margin-bottom:20px; padding:20px;">
             <h3 style="margin:0 0 15px 0; font-size:16px; color:#333;">Sales Details</h3>
             <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:20px;">
                 <div>
                     <label style="display:block; margin-bottom:6px; font-weight:500;">Sales Type <span style="color:red;">*</span></label>
-                    <select name="sales_type" id="sales_type" required style="width:100%; padding:10px; border:1px solid #ddd; border-radius:6px;"{{ $dis }}>
+                    <select name="sales_type" id="sales_type" required style="width:100%; padding:10px; border:1px solid #ddd; border-radius:6px;"{{ $disSales }}>
                         <option value="Tender" {{ old('sales_type', $workOrder->sales_type) == 'Tender' ? 'selected' : '' }}>Tender</option>
                         <option value="Enquiry" {{ old('sales_type', $workOrder->sales_type) == 'Enquiry' ? 'selected' : '' }}>Enquiry</option>
                     </select>
+                    @if($isEdit)
+                        <input type="hidden" name="sales_type" value="{{ $workOrder->sales_type }}">
+                    @endif
                 </div>
                 <div>
                     <label style="display:block; margin-bottom:6px; font-weight:500;">Customer Production Order No <span style="color:red;">*</span></label>
-                    <select name="po_id" id="po_select" required style="width:100%; padding:10px; border:1px solid #ddd; border-radius:6px;"{{ $dis }}>
+                    <select name="po_id" id="po_select" required style="width:100%; padding:10px; border:1px solid #ddd; border-radius:6px;"{{ $disSales }}>
                         <option value="">Select PO</option>
                         @foreach($customerOrders as $co)
                             @php
                                 $tenderNo = optional($co->tender)->tender_no ?? null;
                                 $coNo     = $co->production_order_no ?? $co->order_no ?? 'CO-' . $co->id;
-                                // Display: "TND00004 / COO001"  — or just the CO no when no tender
                                 $displayLabel = $tenderNo ? $tenderNo . ' / ' . $coNo : $coNo;
                             @endphp
                             <option value="{{ $co->id }}"
@@ -64,23 +71,25 @@
                                     data-sales-type="Tender"
                                     data-po="{{ $co->customer_po_no ?? $co->production_order_no ?? $co->order_no ?? '' }}"
                                     data-cust-po="{{ $co->customer_po_no ?? '' }}"
-                                    {{ old('po_id') == $co->id && old('po_type') == 'customer_order' ? 'selected' : '' }}>
+                                    {{ ($currentPoId == $co->id && $currentPoType == 'customer_order') ? 'selected' : '' }}>
                                 {{ $displayLabel }}
                             </option>
                         @endforeach
                         @foreach($proformaInvoices as $pi)
-                            <option value="{{ $pi->id }}" data-type="proforma_invoice" data-sales-type="Enquiry" data-po="{{ $pi->invoice_no ?? '' }}" data-cust-po="" {{ old('po_id') == $pi->id && old('po_type') == 'proforma_invoice' ? 'selected' : '' }}>{{ $pi->invoice_no ?? 'PI-'.$pi->id }}</option>
+                            <option value="{{ $pi->id }}" data-type="proforma_invoice" data-sales-type="Enquiry" data-po="{{ $pi->invoice_no ?? '' }}" data-cust-po="" {{ ($currentPoId == $pi->id && $currentPoType == 'proforma_invoice') ? 'selected' : '' }}>{{ $pi->invoice_no ?? 'PI-'.$pi->id }}</option>
                         @endforeach
                     </select>
-                    <input type="hidden" name="po_type" id="po_type" value="{{ old('po_type', 'customer_order') }}">
+                    <input type="hidden" name="po_type" id="po_type" value="{{ $currentPoType }}">
+                    @if($isEdit)
+                        <input type="hidden" name="po_id" value="{{ $currentPoId }}">
+                    @endif
                 </div>
                 <div>
                     <label style="display:block; margin-bottom:6px; font-weight:500;">Work Order No</label>
-                    <input type="text" id="work_order_no_display" readonly value="{{ $workOrder->work_order_no ?? '' }}" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:6px; background:#e5e7eb;">
+                    <input type="text" name="work_order_no" id="work_order_no_display" readonly value="{{ old('work_order_no', $workOrder->work_order_no ?? '') }}" style="width:100\%; padding:10px; border:1px solid #ddd; border-radius:6px; background:#e5e7eb;">
                 </div>
             </div>
         </div>
-        @endif
 
         {{-- Existing Work Order --}}
         <div style="background:#f8f9fa; border:1px solid #dee2e6; border-radius:8px; margin-bottom:20px; padding:20px;">
@@ -873,7 +882,25 @@
     });
     document.getElementById('worker_type')?.dispatchEvent(new Event('change'));
 
+    function fetchTitleFromPo() {
+        if (viewOnly || @json($isEdit)) return;
+        const poSelect = document.getElementById('po_select');
+        const poType = document.getElementById('po_type');
+        const titleInput = document.getElementById('title');
+        if (!poSelect || !titleInput) return;
+        const poId = poSelect.value;
+        const type = poType?.value || 'customer_order';
+        if (!poId) return;
+
+        const url = '{{ route("work-orders.title-from-po") }}?po_type=' + encodeURIComponent(type) + '&po_id=' + encodeURIComponent(poId);
+        fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' } })
+            .then(r => r.json())
+            .then(data => { if (data.title) titleInput.value = data.title; })
+            .catch(() => {});
+    }
+
     function fetchNextWorkOrderNo() {
+        if (viewOnly || @json($isEdit)) return;
         const salesType = document.getElementById('sales_type')?.value || 'Tender';
         const poSelect = document.getElementById('po_select');
         const poType = document.getElementById('po_type');
@@ -888,16 +915,35 @@
             .catch(() => {});
     }
 
-    document.getElementById('po_select')?.addEventListener('change', function() {
+    const salesTypeEl = document.getElementById('sales_type');
+    const poSelectEl = document.getElementById('po_select');
+
+    if (salesTypeEl && poSelectEl) {
+        salesTypeEl.addEventListener('change', function(e) {
+            const st = this.value;
+            Array.from(poSelectEl.options).forEach(o => {
+                if (o.value === '') { o.style.display = ''; return; }
+                o.style.display = (o.dataset.salesType || '') === st ? '' : 'none';
+            });
+            // Only clear selection if triggered by a real user interaction or if current selection is invalid for new type
+            const currentSelected = poSelectEl.selectedOptions[0];
+            if (e.isTrusted || (currentSelected && currentSelected.style.display === 'none')) {
+                poSelectEl.value = '';
+                document.getElementById('work_order_no_display').value = '';
+            }
+            if (!@json($isEdit)) fetchNextWorkOrderNo();
+        });
+    }
+
+    poSelectEl?.addEventListener('change', function() {
         const opt = this.selectedOptions[0];
         if (opt) {
             document.getElementById('po_type').value = opt.dataset.type || 'customer_order';
         }
-        fetchNextWorkOrderNo();
-    });
-
-    document.getElementById('sales_type')?.addEventListener('change', function() {
-        fetchNextWorkOrderNo();
+        if (!@json($isEdit)) {
+            fetchNextWorkOrderNo();
+            fetchTitleFromPo();
+        }
     });
 
     document.getElementById('existing_wo')?.addEventListener('change', function() {
@@ -907,18 +953,12 @@
     });
     document.getElementById('existing_wo')?.dispatchEvent(new Event('change'));
 
-    document.getElementById('sales_type')?.addEventListener('change', function() {
-        const st = this.value;
-        const sel = document.getElementById('po_select');
-        Array.from(sel.options).forEach(o => {
-            if (o.value === '') { o.style.display = ''; return; }
-            o.style.display = (o.dataset.salesType || '') === st ? '' : 'none';
-        });
-        sel.value = '';
+    // Trigger initial state
+    if (salesTypeEl) salesTypeEl.dispatchEvent(new Event('change'));
+    if (!@json($isEdit) && poSelectEl?.value) {
         fetchNextWorkOrderNo();
-    });
-    document.getElementById('sales_type')?.dispatchEvent(new Event('change'));
-    fetchNextWorkOrderNo();
+        fetchTitleFromPo();
+    }
 })();
 </script>
 @endpush

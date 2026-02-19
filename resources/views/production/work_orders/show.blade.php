@@ -50,22 +50,37 @@
     {{-- ── Work order detail card ── --}}
     <div style="background: #f8f9fa; padding: 25px; border-radius: 5px;">
 
-        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px; margin-bottom: 15px;">
-            <div style="color: #666; font-weight: 500;">Work Order No:</div>
-            <div style="color: #333; font-weight: 600;">{{ $workOrder->work_order_no }}</div>
+        {{-- Sales Details section (matching Create layout) --}}
+        <div style="background:white; border:1px solid #dee2e6; border-radius:8px; margin-bottom:20px; padding:20px;">
+            <h3 style="margin:0 0 15px 0; font-size:16px; color:#333;">Sales Details</h3>
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:20px;">
+                <div>
+                    <label style="display:block; margin-bottom:6px; font-weight:500;">Sales Type</label>
+                    <input type="text" readonly value="{{ $workOrder->sales_type ?? 'N/A' }}" style="width:100\%; padding:10px; border:1px solid #ddd; border-radius:6px; background:#e5e7eb;">
+                </div>
+                <div>
+                    <label style="display:block; margin-bottom:6px; font-weight:500;">Customer Production Order No</label>
+                    @php
+                        $co = $workOrder->customerOrder;
+                        $pi = $workOrder->proformaInvoice;
+                        $displayLabel = 'N/A';
+                        if ($co) {
+                            $tenderNo = optional($co->tender)->tender_no ?? null;
+                            $coNo     = $co->production_order_no ?? $co->order_no ?? 'CO-' . $co->id;
+                            $displayLabel = $tenderNo ? $tenderNo . ' / ' . $coNo : $coNo;
+                        } elseif ($pi) {
+                            $displayLabel = $pi->invoice_no ?? 'PI-'.$pi->id;
+                        }
+                    @endphp
+                    <input type="text" readonly value="{{ $displayLabel }}" style="width:100\%; padding:10px; border:1px solid #ddd; border-radius:6px; background:#e5e7eb;">
+                </div>
+                <div>
+                    <label style="display:block; margin-bottom:6px; font-weight:500;">Work Order No</label>
+                    <input type="text" readonly value="{{ $workOrder->work_order_no ?? '' }}" style="width:100\%; padding:10px; border:1px solid #ddd; border-radius:6px; background:#e5e7eb;">
+                </div>
+            </div>
         </div>
-        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px; margin-bottom: 15px;">
-            <div style="color: #666; font-weight: 500;">Production Order No:</div>
-            <div style="color: #333;">{{ $workOrder->production_order_no ?? 'N/A' }}</div>
-        </div>
-        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px; margin-bottom: 15px;">
-            <div style="color: #666; font-weight: 500;">Customer PO No:</div>
-            <div style="color: #333;">{{ $workOrder->customer_po_no ?? 'N/A' }}</div>
-        </div>
-        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px; margin-bottom: 15px;">
-            <div style="color: #666; font-weight: 500;">Sales Type:</div>
-            <div style="color: #333;">{{ $workOrder->sales_type ?? 'N/A' }}</div>
-        </div>
+
         <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px; margin-bottom: 15px;">
             <div style="color: #666; font-weight: 500;">Date:</div>
             <div style="color: #333;">{{ $workOrder->created_at->format('d-m-Y') }}</div>
