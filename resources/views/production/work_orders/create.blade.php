@@ -37,7 +37,7 @@
         @if($isEdit) @method('PUT') @endif
 
         @php
-            $disSales = ($viewOnly || $isEdit) ? ' disabled' : '';
+            $disSales = ($viewOnly) ? ' disabled' : '';
             $currentPoId = old('po_id', $workOrder->customer_order_id ?: $workOrder->proforma_invoice_id);
             $currentPoType = old('po_type', $workOrder->customer_order_id ? 'customer_order' : ($workOrder->proforma_invoice_id ? 'proforma_invoice' : 'customer_order'));
         @endphp
@@ -48,17 +48,14 @@
             <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:20px;">
                 <div>
                     <label style="display:block; margin-bottom:6px; font-weight:500;">Sales Type <span style="color:red;">*</span></label>
-                    <select name="sales_type" id="sales_type" required style="width:100%; padding:10px; border:1px solid #ddd; border-radius:6px;"{{ $disSales }}>
+                    <select name="sales_type" id="sales_type" required style="width:100\%; padding:10px; border:1px solid #ddd; border-radius:6px;"{{ $disSales }}>
                         <option value="Tender" {{ old('sales_type', $workOrder->sales_type) == 'Tender' ? 'selected' : '' }}>Tender</option>
                         <option value="Enquiry" {{ old('sales_type', $workOrder->sales_type) == 'Enquiry' ? 'selected' : '' }}>Enquiry</option>
                     </select>
-                    @if($isEdit)
-                        <input type="hidden" name="sales_type" value="{{ $workOrder->sales_type }}">
-                    @endif
                 </div>
                 <div>
                     <label style="display:block; margin-bottom:6px; font-weight:500;">Customer Production Order No <span style="color:red;">*</span></label>
-                    <select name="po_id" id="po_select" required style="width:100%; padding:10px; border:1px solid #ddd; border-radius:6px;"{{ $disSales }}>
+                    <select name="po_id" id="po_select" required style="width:100\%; padding:10px; border:1px solid #ddd; border-radius:6px;"{{ $disSales }}>
                         <option value="">Select PO</option>
                         @foreach($customerOrders as $co)
                             @php
@@ -80,9 +77,6 @@
                         @endforeach
                     </select>
                     <input type="hidden" name="po_type" id="po_type" value="{{ $currentPoType }}">
-                    @if($isEdit)
-                        <input type="hidden" name="po_id" value="{{ $currentPoId }}">
-                    @endif
                 </div>
                 <div>
                     <label style="display:block; margin-bottom:6px; font-weight:500;">Work Order No</label>
@@ -883,7 +877,7 @@
     document.getElementById('worker_type')?.dispatchEvent(new Event('change'));
 
     function fetchTitleFromPo() {
-        if (viewOnly || @json($isEdit)) return;
+        if (viewOnly) return;
         const poSelect = document.getElementById('po_select');
         const poType = document.getElementById('po_type');
         const titleInput = document.getElementById('title');
@@ -942,8 +936,8 @@
         }
         if (!@json($isEdit)) {
             fetchNextWorkOrderNo();
-            fetchTitleFromPo();
         }
+        fetchTitleFromPo();
     });
 
     document.getElementById('existing_wo')?.addEventListener('change', function() {

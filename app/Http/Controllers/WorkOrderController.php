@@ -258,6 +258,9 @@ class WorkOrderController extends Controller
         $workOrder = $query->findOrFail($id);
 
         $validated = $request->validate([
+            'sales_type' => 'required|in:Tender,Enquiry',
+            'po_type' => 'required|in:customer_order,proforma_invoice',
+            'po_id' => 'required|integer|min:1',
             'title' => 'nullable|string|max:500',
             'worker_type' => 'required|in:Employee,Sub-Contractor',
             'worker_id' => 'nullable|integer',
@@ -288,7 +291,33 @@ class WorkOrderController extends Controller
             'qty_blocks.*.starting_quantity_no' => 'nullable|integer|min:0',
         ]);
 
+        $productionOrderNo = '';
+        $customerPoNo = '';
+        $customerOrderId = null;
+        $proformaInvoiceId = null;
+
+        if ($validated['po_type'] === 'customer_order') {
+            $coQuery = CustomerOrder::query();
+            $coQuery = $this->applyBranchFilter($coQuery, CustomerOrder::class);
+            $co = $coQuery->findOrFail($validated['po_id']);
+            $customerOrderId = $co->id;
+            $productionOrderNo = $co->production_order_no ?? $co->order_no ?? '';
+            $customerPoNo = $co->customer_po_no ?? '';
+        } else {
+            $piQuery = ProformaInvoice::query();
+            $piQuery = $this->applyBranchFilter($piQuery, ProformaInvoice::class);
+            $pi = $piQuery->findOrFail($validated['po_id']);
+            $proformaInvoiceId = $pi->id;
+            $productionOrderNo = $pi->invoice_no ?? '';
+            $customerPoNo = '';
+        }
+
         $workOrder->update([
+            'sales_type' => $validated['sales_type'],
+            'customer_order_id' => $customerOrderId,
+            'proforma_invoice_id' => $proformaInvoiceId,
+            'production_order_no' => $productionOrderNo,
+            'customer_po_no' => $customerPoNo,
             'title' => $validated['title'] ?? null,
             'worker_type' => $validated['worker_type'],
             'worker_id' => $validated['worker_id'] ?? null,
