@@ -18,19 +18,6 @@
         <div style="display:flex; gap:10px;">
             @if($viewOnly)
             <a href="{{ route('work-orders.edit', $workOrder->id) }}" style="padding:10px 20px; background:#ffc107; color:#333; text-decoration:none; border-radius:5px; font-weight:500; display:inline-flex; align-items:center; gap:8px;"><i class="fas fa-edit"></i> Edit</a>
-            
-            {{-- DELETE BUTTON --}}
-            <button type="button" 
-                    onclick="return confirmDelete()"
-                    style="padding:10px 20px; background:#dc3545; color:white; border:none; border-radius:5px; font-weight:500; cursor:pointer; display:inline-flex; align-items:center; gap:8px;">
-                <i class="fas fa-trash"></i> Delete
-            </button>
-
-            {{-- HIDDEN DELETE FORM --}}
-            <form id="deleteForm" action="{{ route('work-orders.destroy', $workOrder->id) }}" method="POST" style="display:none;">
-                @csrf
-                @method('DELETE')
-            </form>
             @endif
             <a href="{{ route('work-orders.index') }}" style="padding:10px 20px; background:#6c757d; color:white; text-decoration:none; border-radius:5px; font-weight:500; display:inline-flex; align-items:center; gap:8px;">
                 <i class="fas fa-list"></i> List
@@ -164,7 +151,7 @@
         {{-- Quantity Selection (Radio) - Dynamic --}}
         <div id="qty-selection-section" style="background:#f1f5f9; border:1px solid #dee2e6; border-radius:8px; margin-bottom:20px; padding:20px; position:relative;">
             <span style="position:absolute; right:50px; top:15px; font-size:12px; color:#667eea; margin-right:46px;">(Based on the selection, the contents change)</span>
-            @if(!$viewOnly)<button type="button" id="addQtyBlockBtn" style="display:none; position:absolute; right:15px; top:12px; width:36px; height:36px; background:#667eea; color:white; border:none; border-radius:6px; font-size:20px; line-height:1; cursor:pointer; padding:0; align-items:center; justify-content:center;" title="Add set block">+</button>@endif
+          
 
             {{-- Product Name — at the very top of this container, above the section heading --}}
             <div style="margin-bottom:16px;">
@@ -363,6 +350,18 @@
                 <a href="{{ route('work-orders.index') }}" style="padding:12px 24px; background:#6c757d; color:white; text-decoration:none; border-radius:6px; font-weight:500; display:inline-flex; align-items:center; gap:6px;">
                     <i class="fas fa-list"></i> List
                 </a>
+                     {{-- DELETE BUTTON --}}
+            <button type="button" 
+                    onclick="return confirmDelete()"
+                    style="padding:15px 20px; background:#dc3545; color:white; border:none; border-radius:5px; font-weight:500; cursor:pointer; display:inline-flex; align-items:center; gap:8px;">
+                <i class="fas fa-trash"></i> Delete
+            </button>
+
+            {{-- HIDDEN DELETE FORM --}}
+            <form id="deleteForm" action="{{ route('work-orders.destroy', $workOrder->id) }}" method="POST" style="display:none;">
+                @csrf
+                @method('DELETE')
+            </form>
 
                 {{-- Generate PDF button --}}
                 @if($isEdit)

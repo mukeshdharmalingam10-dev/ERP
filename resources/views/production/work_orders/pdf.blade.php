@@ -372,13 +372,17 @@
 
     {{-- ═══════════ FOOTER ═══════════ --}}
     <div class="footer-bar">
-        <table cellspacing="0" cellpadding="0">
-            <tr>
-                <td>{{ $company->company_name ?? config('app.name') }}</td>
-                <td style="text-align:right;">Generated: {{ now()->format('d-m-Y H:i') }}</td>
-            </tr>
-        </table>
-    </div>
+    <table style="width:100%; border-collapse:collapse;">
+        <tr>
+            <td style="text-align:left;">
+                Meena Fiberglas Industries
+            </td>
+            <td style="text-align:right;">
+                Generated: {{ now()->format('d-m-Y H:i') }}
+            </td>
+        </tr>
+    </table>
+</div>
 
 </div>
 </body>
