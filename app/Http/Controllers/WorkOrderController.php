@@ -382,7 +382,7 @@ class WorkOrderController extends Controller
         }
         $workOrder->delete();
 
-        return redirect()->route('work-orders.index')->with('success', 'Work order deleted successfully.');
+        return redirect()->route('work-orders.index')->with('success', 'Work Order deleted successfully.');
     }
 
     public function getPoOptions(Request $request)

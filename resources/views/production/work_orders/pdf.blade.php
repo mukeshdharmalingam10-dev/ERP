@@ -190,58 +190,24 @@
     {{-- ═══════════ HEADER ═══════════ --}}
     <div class="header-wrapper">
 
-        {{-- Centered company block --}}
+        {{-- Static company header: Meena Fiberglas Industries --}}
         <div class="header-center">
 
-            {{-- Company name --}}
             <div class="company-name">
-                {{ $company->company_name ?? config('app.name', 'Company Name') }}
+                Meena Fiberglas Industries
             </div>
 
-            @if($company)
-                {{-- Certification lines (use DB fields if present, else hard-coded fallbacks) --}}
-                @php
-                    $cert1 = $company->certification_1 ?? 'An IRIS Certified Company';
-                    $cert2 = $company->certification_2 ?? 'An ISO 9001:2015 Certified Company';
-                @endphp
-                <div class="company-cert">
-                    {{ $cert1 }}<br>
-                    {{ $cert2 }}
-                </div>
+            <div class="company-cert">
+                An IRIS Certified Company<br>
+                An ISO 9001:2015 Certified Company
+            </div>
 
-                {{-- Address block --}}
-                <div class="company-address">
-                    @php
-                        $addrParts = array_filter([
-                            $company->address_line_1 ?? null,
-                            $company->address_line_2 ?? null,
-                        ]);
-                        $cityState = trim(
-                            ($company->city   ?? '') . ', ' .
-                            ($company->state  ?? '')
-                        );
-                        $cityState = rtrim(ltrim($cityState, ', '), ', ');
-                        if ($company->pincode) {
-                            $cityState = $cityState ? $cityState . ' - ' . $company->pincode : $company->pincode;
-                        }
-                        $phoneMobile = '';
-                        if ($company->phone)  { $phoneMobile .= 'Phone: ' . $company->phone; }
-                        if ($company->mobile ?? null) {
-                            $phoneMobile .= ($phoneMobile ? '  Mobile: ' : 'Mobile: ') . $company->mobile;
-                        }
-                        $emailLine = $company->email ? 'e-mail: ' . $company->email : '';
-                        $gstin     = $company->gstin ? 'GSTIN: ' . $company->gstin : '';
-                    @endphp
-
-                    @if(count($addrParts))
-                        {{ implode(', ', $addrParts) }}<br>
-                    @endif
-                    @if($cityState) {{ $cityState }}<br> @endif
-                    @if($phoneMobile) {{ $phoneMobile }}<br> @endif
-                    @if($emailLine)   {{ $emailLine }}<br> @endif
-                    @if($gstin)       {{ $gstin }}<br>   @endif
-                </div>
-            @endif
+            <div class="company-address">
+                R.S.No. 151/3, Cuddalore-Pondy Main Road,<br>
+                Kattukuppam, Puducherry-607 402<br>
+                Phone: 0413-2611009&nbsp;&nbsp;Mobile: 7358019212<br>
+                e-mail: sales@meenafibres.com
+            </div>
 
         </div>{{-- /.header-center --}}
 
