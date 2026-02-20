@@ -405,10 +405,7 @@
         if (confirm('Are you sure you want to delete this work order?')) {
             const form = document.getElementById('deleteForm');
             if (form) {
-                // Remove data-submitting to bypass global double-submit guard if necessary
-                form.removeAttribute('data-submitting');
-                // Use native submit to bypass event listeners that might block it
-                HTMLFormElement.prototype.submit.call(form);
+                form.submit();
             }
         }
         return false;
@@ -877,19 +874,38 @@
     document.getElementById('worker_type')?.dispatchEvent(new Event('change'));
 
     function fetchTitleFromPo() {
-        if (viewOnly) return;
+        // Disabled as per requirement: Title should be truly optional and not auto-filled
+        return;
+    }
+
+    function fetchExistingWoForPo() {
+        if (viewOnly || @json($isEdit)) return;
         const poSelect = document.getElementById('po_select');
         const poType = document.getElementById('po_type');
-        const titleInput = document.getElementById('title');
-        if (!poSelect || !titleInput) return;
+        const existingWoSelect = document.getElementById('existing_wo');
+        
+        if (!poSelect || !existingWoSelect) return;
+        
         const poId = poSelect.value;
         const type = poType?.value || 'customer_order';
-        if (!poId) return;
+        
+        if (!poId) {
+            existingWoSelect.value = '';
+            existingWoSelect.dispatchEvent(new Event('change'));
+            return;
+        }
 
-        const url = '{{ route("work-orders.title-from-po") }}?po_type=' + encodeURIComponent(type) + '&po_id=' + encodeURIComponent(poId);
+        const url = '{{ route("work-orders.existing-wo") }}?po_type=' + encodeURIComponent(type) + '&po_id=' + encodeURIComponent(poId);
         fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' } })
             .then(r => r.json())
-            .then(data => { if (data.title) titleInput.value = data.title; })
+            .then(data => {
+                if (data.existing_wo_id) {
+                    existingWoSelect.value = data.existing_wo_id;
+                } else {
+                    existingWoSelect.value = '';
+                }
+                existingWoSelect.dispatchEvent(new Event('change'));
+            })
             .catch(() => {});
     }
 
@@ -936,6 +952,7 @@
         }
         if (!@json($isEdit)) {
             fetchNextWorkOrderNo();
+            fetchExistingWoForPo();
         }
         fetchTitleFromPo();
     });
@@ -951,6 +968,7 @@
     if (salesTypeEl) salesTypeEl.dispatchEvent(new Event('change'));
     if (!@json($isEdit) && poSelectEl?.value) {
         fetchNextWorkOrderNo();
+        fetchExistingWoForPo();
         fetchTitleFromPo();
     }
 })();

@@ -87,7 +87,7 @@
         </div>
         <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px; margin-bottom: 15px;">
             <div style="color: #666; font-weight: 500;">Title:</div>
-            <div style="color: #333;">{{ $workOrder->title ?? 'N/A' }}</div>
+            <div style="color: #333;">{{ $workOrder->title ?? '' }}</div>
         </div>
         <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px; margin-bottom: 15px;">
             <div style="color: #666; font-weight: 500;">Worker Type:</div>
@@ -208,17 +208,13 @@
      * which sets data-submitting="true" and would block a second submit attempt.
      */
     window.woConfirmDelete = function () {
-        var confirmed = confirm('Are you sure you want to delete this work order?');
-        if (confirmed) {
+        if (confirm('Are you sure you want to delete this work order?')) {
             var form = document.getElementById('woDeleteForm');
             if (form) {
-                // Reset any submitting guard set by the global handler
-                form.removeAttribute('data-submitting');
-                // Use native submit to bypass any jQuery / global event listeners
-                HTMLFormElement.prototype.submit.call(form);
+                form.submit();
             }
         }
-        return false; // prevent any default action on the trigger button
+        return false;
     };
 
     // No auto-trigger. Confirmation happens only on manual button click.

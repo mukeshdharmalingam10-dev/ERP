@@ -61,22 +61,22 @@
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 20px;
+            border: 1px solid #000;
         }
         .details-table td {
-            padding: 4px 2px;
+            padding: 8px 12px;
             vertical-align: top;
             font-size: 10pt;
+            border: 1px solid #000;
         }
         .label {
-            width: 180px;
-            font-weight: normal;
-        }
-        .colon {
-            width: 10px;
+            width: 40%;
+            font-weight: bold;
+            background-color: #f9f9f9;
         }
         .value {
-            border-bottom: 1px solid #000;
-            padding-left: 5px;
+            width: 60%;
+            padding-left: 10px;
         }
         .raw-material-title {
             font-weight: bold;
@@ -160,67 +160,55 @@
     {{-- WORK ORDER DETAIL STRUCTURE --}}
     <table class="details-table">
         <tr>
-            <td class="label">WorkOrderNo</td><td class="colon">:</td><td class="value">{{ $workOrder->work_order_no }}</td>
+            <td class="label">Work Order No</td><td class="value">{{ $workOrder->work_order_no }}</td>
         </tr>
         <tr>
-            <td class="label">Production Order No</td><td class="colon">:</td><td class="value">{{ $workOrder->production_order_no ?? '—' }}</td>
+            <td class="label">Customer PO No</td><td class="value">{{ $workOrder->customer_po_no ?? '—' }}</td>
         </tr>
         <tr>
-            <td class="label">Employee Name</td><td class="colon">:</td><td class="value">{{ $workOrder->worker_type == 'Employee' ? $workOrder->worker_name : '—' }}</td>
+            <td class="label">Production Order No</td><td class="value">{{ $workOrder->production_order_no ?? '—' }}</td>
         </tr>
         <tr>
-            <td class="label">Supplier Name</td><td class="colon">:</td><td class="value">{{ $workOrder->worker_type == 'Sub-Contractor' ? $workOrder->worker_name : '—' }}</td>
+            <td class="label">Employee Name</td><td class="value">{{ $workOrder->worker_type == 'Employee' ? $workOrder->worker_name : '—' }}</td>
         </tr>
         <tr>
-            <td class="label">QC No</td><td class="colon">:</td><td class="value">—</td> {{-- Blank as per requirement --}}
+            <td class="label">Supplier Name</td><td class="value">{{ $workOrder->worker_type == 'Sub-Contractor' ? $workOrder->worker_name : '—' }}</td>
         </tr>
         <tr>
-            <td class="label">Quantity</td><td class="colon">:</td><td class="value">{{ $workOrder->no_of_quantity ?: $workOrder->no_of_sets }} {{ $workOrder->quantity_type }}</td>
+            <td class="label">Quantity</td><td class="value">{{ $workOrder->no_of_quantity ?: $workOrder->no_of_sets }} {{ $workOrder->quantity_type }}</td>
         </tr>
         <tr>
-            <td class="label">Starting Production No</td><td class="colon">:</td><td class="value">{{ $workOrder->starting_quantity_no ?: $workOrder->starting_set_no ?: '—' }}</td>
+            <td class="label">Starting Production No</td><td class="value">{{ $workOrder->starting_quantity_no ?: $workOrder->starting_set_no ?: '—' }}</td>
         </tr>
         <tr>
-            <td class="label">Ending Production No</td><td class="colon">:</td><td class="value">{{ $workOrder->ending_quantity_no ?: $workOrder->ending_set_no ?: '—' }}</td>
+            <td class="label">Ending Production No</td><td class="value">{{ $workOrder->ending_quantity_no ?: $workOrder->ending_set_no ?: '—' }}</td>
         </tr>
         <tr>
-            <td class="label">Rework</td><td class="colon">:</td><td class="value">—</td>
+            <td class="label">Product Name</td><td class="value">{{ $workOrder->product_name ?? '—' }}</td>
         </tr>
         <tr>
-            <td class="label">DC Required</td><td class="colon">:</td><td class="value">—</td>
+            <td class="label">Process Name</td><td class="value">{{ $workOrder->nature_of_work ?? '—' }}</td>
         </tr>
         <tr>
-            <td class="label">Product Name</td><td class="colon">:</td><td class="value">{{ $workOrder->product_name ?? '—' }}</td>
+            <td class="label">Employee Type</td><td class="value">{{ $workOrder->worker_type ?? '—' }}</td>
         </tr>
         <tr>
-            <td class="label">Process Name</td><td class="colon">:</td><td class="value">{{ $workOrder->nature_of_work ?? '—' }}</td>
+            <td class="label">Product Size</td><td class="value">{{ $workOrder->title ?? '' }}</td>
         </tr>
         <tr>
-            <td class="label">Employee Type</td><td class="colon">:</td><td class="value">{{ $workOrder->worker_type ?? '—' }}</td>
+            <td class="label">Thickness</td><td class="value">{{ $workOrder->thickness ?? '—' }}</td>
         </tr>
         <tr>
-            <td class="label">Product Size</td><td class="colon">:</td><td class="value">{{ $workOrder->title ?? '—' }}</td>
+            <td class="label">Colour</td><td class="value">{{ $workOrder->color ?? '—' }}</td>
         </tr>
         <tr>
-            <td class="label">Thickness</td><td class="colon">:</td><td class="value">{{ $workOrder->thickness ?? '—' }}</td>
+            <td class="label">Design Completed Date</td><td class="value">{{ $workOrder->completion_date ? $workOrder->completion_date->format('d-m-Y') : '—' }}</td>
         </tr>
         <tr>
-            <td class="label">Colour</td><td class="colon">:</td><td class="value">{{ $workOrder->color ?? '—' }}</td>
+            <td class="label">Sequence</td><td class="value">{{ $workOrder->layup_sequence ?? '—' }}</td>
         </tr>
         <tr>
-            <td class="label">Design Completed Date</td><td class="colon">:</td><td class="value">{{ $workOrder->completion_date ? $workOrder->completion_date->format('d-m-Y') : '—' }}</td>
-        </tr>
-        <tr>
-            <td class="label">Sequence</td><td class="colon">:</td><td class="value">{{ $workOrder->layup_sequence ?? '—' }}</td>
-        </tr>
-        <tr>
-            <td class="label">Material Issued Details</td><td class="colon">:</td><td class="value">—</td>
-        </tr>
-        <tr>
-            <td class="label">Remarks</td><td class="colon">:</td><td class="value">{{ $workOrder->remarks ?? '—' }}</td>
-        </tr>
-        <tr>
-            <td class="label">Status</td><td class="colon">:</td><td class="value">—</td>
+            <td class="label">Remarks</td><td class="value">{{ $workOrder->remarks ?? '—' }}</td>
         </tr>
     </table>
 

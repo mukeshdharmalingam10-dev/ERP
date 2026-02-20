@@ -151,6 +151,7 @@ class WorkOrderController extends Controller
             'work_order_date' => 'nullable|date',
             'remarks' => 'nullable|string',
             'reference_table_data' => 'nullable|string',
+            'existing_work_order_id' => 'nullable|integer|exists:work_orders,id',
             'qty_blocks' => 'nullable|array',
             'qty_blocks.*.no_of_sets' => 'nullable|numeric|min:0',
             'qty_blocks.*.starting_set_no' => 'nullable|integer|min:0',
@@ -164,7 +165,7 @@ class WorkOrderController extends Controller
         $customerPoNo = '';
         $customerOrderId = null;
         $proformaInvoiceId = null;
-        $title = $validated['title'] ?? '';
+        $title = $validated['title'] ?? null;
 
         if ($validated['po_type'] === 'customer_order') {
             $coQuery = CustomerOrder::query();
@@ -173,12 +174,6 @@ class WorkOrderController extends Controller
             $customerOrderId = $co->id;
             $productionOrderNo = $co->production_order_no ?? $co->order_no ?? '';
             $customerPoNo = $co->customer_po_no ?? '';
-            if (empty($title) && $co->items->isNotEmpty()) {
-                $titles = $co->items->pluck('product.name')->filter()->unique()->implode(', ');
-                if ($titles) {
-                    $title = $titles;
-                }
-            }
         } else {
             $piQuery = ProformaInvoice::query();
             $piQuery = $this->applyBranchFilter($piQuery, ProformaInvoice::class);
@@ -228,6 +223,7 @@ class WorkOrderController extends Controller
             'remarks' => $validated['remarks'] ?? null,
             'reference_table_data' => !empty($validated['reference_table_data']) ? json_decode($validated['reference_table_data'], true) : null,
             'quantity_blocks' => $this->buildQuantityBlocks($validated),
+            'existing_work_order_id' => $validated['existing_work_order_id'] ?? null,
             'created_by_id' => auth()->id(),
         ]);
 
@@ -343,6 +339,7 @@ class WorkOrderController extends Controller
             'remarks' => $validated['remarks'] ?? null,
             'reference_table_data' => !empty($validated['reference_table_data']) ? json_decode($validated['reference_table_data'], true) : null,
             'quantity_blocks' => $this->buildQuantityBlocks($validated),
+            'existing_work_order_id' => $validated['existing_work_order_id'] ?? null,
         ]);
 
         if ($request->hasFile('document')) {
@@ -448,6 +445,27 @@ class WorkOrderController extends Controller
         }
 
         return response()->json($options);
+    }
+
+    public function getExistingWoForPo(Request $request)
+    {
+        $poType = $request->get('po_type');
+        $poId = (int) $request->get('po_id');
+
+        if (!$poId) {
+            return response()->json(['existing_wo_id' => null]);
+        }
+
+        $query = WorkOrder::query();
+        if ($poType === 'customer_order') {
+            $query->where('customer_order_id', $poId);
+        } else {
+            $query->where('proforma_invoice_id', $poId);
+        }
+
+        $existingWo = $query->orderByDesc('created_at')->first();
+
+        return response()->json(['existing_wo_id' => $existingWo ? $existingWo->id : null]);
     }
 
     public function getTitleFromPo(Request $request)

@@ -64,7 +64,7 @@
                             <td style="padding: 12px; color: #333;">{{ $wo->customer_po_no ?? 'N/A' }}</td>
                             <td style="padding: 12px; color: #333;">{{ $wo->sales_type ?? 'N/A' }}</td>
                             <td style="padding: 12px; color: #666;">{{ $wo->created_at->format('d-m-Y') }}</td>
-                            <td style="padding: 12px; color: #333;">{{ Str::limit($wo->title ?? 'N/A', 40) }}</td>
+                            <td style="padding: 12px; color: #333;">{{ $wo->title ?? '' }}</td>
                             <td style="padding: 12px; color: #333; font-weight: 500;">{{ $wo->work_order_no }}</td>
 
                             {{-- Actions --}}
@@ -110,7 +110,7 @@
                                     <td style="padding: 10px 12px; color: #aaa;"></td>
                                     <td style="padding: 10px 12px; color: #555;">{{ $child->sales_type ?? 'N/A' }}</td>
                                     <td style="padding: 10px 12px; color: #888;">{{ $child->created_at->format('d-m-Y') }}</td>
-                                    <td style="padding: 10px 12px; color: #555;">{{ Str::limit($child->title ?? 'N/A', 40) }}</td>
+                                    <td style="padding: 10px 12px; color: #555;">{{ $child->title ?? '' }}</td>
                                     <td style="padding: 10px 12px; padding-left: 28px; color: #444; font-weight: 500; border-left: 3px solid #667eea;">
                                         {{ $child->work_order_no }}
                                     </td>
