@@ -307,7 +307,7 @@
         rows.forEach(function (row) {
             html += '<div class="cell-entry" style="display:flex; align-items:center; gap:6px;">'
                 + '<input type="number" class="' + kind + '-qty" min="0" step="0.01" value="' + (row.qty || '') + '" placeholder="Qty" style="width:100px; padding:6px; border:1px solid #ddd; border-radius:6px;" ' + (viewOnly ? 'readonly' : '') + '>'
-                + '<input type="text" class="' + kind + '-date date-input" value="' + toDisplayDate(row.date || '') + '" placeholder="DD-MM-YYYY" style="width:130px; padding:6px; border:1px solid #ddd; border-radius:6px;" ' + (viewOnly ? 'readonly' : '') + '>'
+                + '<input type="date" class="' + kind + '-date date-input" value="' + toStoreDate(row.date || '') + '" style="width:150px; padding:6px; border:1px solid #ddd; border-radius:6px;" ' + (viewOnly ? 'readonly' : '') + '>'
                 + (viewOnly ? '' : '<button type="button" class="cell-add" style="' + miniBtnPlus + '">+</button><button type="button" class="cell-remove" style="' + miniBtnMinus + '">−</button>')
                 + '</div>';
         });
@@ -382,7 +382,7 @@
         if (woType === 'Others') {
             html += '<td style="' + tdStyle + '"><input type="number" class="total-qty" min="0" step="0.01" value="' + (rowData.total_qty || '') + '" style="width:130px; padding:8px; border:1px solid #ddd; border-radius:6px;" ' + (viewOnly ? 'readonly' : '') + '></td>';
             html += '<td style="' + tdStyle + '"><input type="number" class="completed-qty" min="0" step="0.01" value="' + (rowData.completed_qty || '') + '" style="width:130px; padding:8px; border:1px solid #ddd; border-radius:6px;" ' + (viewOnly ? 'readonly' : '') + '></td>';
-            html += '<td style="' + tdStyle + '"><input type="text" class="entry-date date-input" value="' + toDisplayDate(rowData.date || '') + '" placeholder="DD-MM-YYYY" style="width:170px; padding:8px; border:1px solid #ddd; border-radius:6px;" ' + (viewOnly ? 'readonly' : '') + '></td>';
+            html += '<td style="' + tdStyle + '"><input type="date" class="entry-date date-input" value="' + toStoreDate(rowData.date || '') + '" style="width:170px; padding:8px; border:1px solid #ddd; border-radius:6px;" ' + (viewOnly ? 'readonly' : '') + '></td>';
         } else if (woType === 'Sub Sets') {
             setNos.forEach(function (setNo) {
                 for (let sub = 1; sub <= subCount; sub++) {
@@ -515,7 +515,7 @@
             wrap.className = 'cell-entry';
             wrap.style.cssText = 'display:flex; align-items:center; gap:6px;';
             wrap.innerHTML = '<input type="number" class="' + kind + '-qty" min="0" step="0.01" placeholder="Qty" style="width:100px; padding:6px; border:1px solid #ddd; border-radius:6px;">'
-                + '<input type="text" class="' + kind + '-date date-input" placeholder="DD-MM-YYYY" style="width:130px; padding:6px; border:1px solid #ddd; border-radius:6px;">'
+                + '<input type="date" class="' + kind + '-date date-input" style="width:150px; padding:6px; border:1px solid #ddd; border-radius:6px;">'
                 + '<button type="button" class="cell-add" style="' + miniBtnPlus + '">+</button>'
                 + '<button type="button" class="cell-remove" style="' + miniBtnMinus + '">−</button>';
             cell.appendChild(wrap);
