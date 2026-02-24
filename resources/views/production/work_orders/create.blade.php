@@ -48,14 +48,14 @@
             <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:20px;">
                 <div>
                     <label style="display:block; margin-bottom:6px; font-weight:500;">Sales Type <span style="color:red;">*</span></label>
-                    <select name="sales_type" id="sales_type" required style="width:100\%; padding:10px; border:1px solid #ddd; border-radius:6px;"{{ $disSales }}>
+                    <select name="sales_type" id="sales_type" required style="width:100%; padding:10px; border:1px solid #ddd; border-radius:6px;"{{ $disSales }}>
                         <option value="Tender" {{ old('sales_type', $workOrder->sales_type) == 'Tender' ? 'selected' : '' }}>Tender</option>
                         <option value="Enquiry" {{ old('sales_type', $workOrder->sales_type) == 'Enquiry' ? 'selected' : '' }}>Enquiry</option>
                     </select>
                 </div>
                 <div>
                     <label style="display:block; margin-bottom:6px; font-weight:500;">Customer Production Order No <span style="color:red;">*</span></label>
-                    <select name="po_id" id="po_select" required style="width:100\%; padding:10px; border:1px solid #ddd; border-radius:6px;"{{ $disSales }}>
+                    <select name="po_id" id="po_select" required style="width:100%; padding:10px; border:1px solid #ddd; border-radius:6px;"{{ $disSales }}>
                         <option value="">Select PO</option>
                         @foreach($customerOrders as $co)
                             @php
@@ -80,7 +80,7 @@
                 </div>
                 <div>
                     <label style="display:block; margin-bottom:6px; font-weight:500;">Work Order No</label>
-                    <input type="text" name="work_order_no" id="work_order_no_display" readonly value="{{ old('work_order_no', $workOrder->work_order_no ?? '') }}" style="width:100\%; padding:10px; border:1px solid #ddd; border-radius:6px; background:#e5e7eb;">
+                    <input type="text" name="work_order_no" id="work_order_no_display" readonly value="{{ old('work_order_no', $workOrder->work_order_no ?? '') }}" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:6px; background:#e5e7eb;">
                 </div>
             </div>
         </div>
@@ -159,7 +159,7 @@
             {{-- Product Name — at the very top of this container, above the section heading --}}
             <div style="margin-bottom:16px;">
                 <label style="display:block; margin-bottom:6px; font-weight:500;">Product Name</label>
-                <input type="text" name="product_name" value="{{ old('product_name', $workOrder->product_name) }}" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:6px;"{{ $dis }}>
+                <input type="text" name="product_name" value="{{ old('product_name', $workOrder->product_name) }}" style="width: 50%; padding:10px; border:1px solid #ddd; border-radius:6px;"{{ $dis }}>
             </div>
 
             <h3 style="margin:0 0 15px 0; font-size:16px; color:#333;">Quantity Selection</h3>

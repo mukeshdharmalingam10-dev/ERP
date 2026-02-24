@@ -513,6 +513,10 @@
                         <i class="fas fa-clipboard-list"></i>
                         <span>Work Order</span>
                     </a>
+                    <a href="{{ route('dpl.index') }}" class="menu-item" title="Daily Production List">
+                        <i class="fas fa-list-check"></i>
+                        <span>Daily Production List</span>
+                    </a>
                 </div>
 
                  <div class="menu-item-header" onclick="toggleMastersMenu()" id="mastersHeader" title="Masters">

@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Production\DailyProductionListController;
 
 /*
 |--------------------------------------------------------------------------
@@ -339,4 +340,14 @@ Route::middleware(['auth'])->group(function () {
     Route::get('work-orders-existing-wo', [App\Http\Controllers\WorkOrderController::class, 'getExistingWoForPo'])->name('work-orders.existing-wo');
     Route::get('work-orders/{workOrder}/print', [App\Http\Controllers\WorkOrderController::class, 'printWorkOrder'])->name('work-orders.print');
     Route::get('work-orders/{workOrder}/generate-pdf', [App\Http\Controllers\WorkOrderController::class, 'generatePdf'])->name('work-orders.generate-pdf');
+
+    // Production Module - Daily Production List (DPL)
+    Route::prefix('production')->group(function () {
+        Route::resource('dpl', DailyProductionListController::class);
+        Route::get('api/dpl-next-no', [DailyProductionListController::class, 'apiNextNo'])->name('dpl.next-no');
+        Route::get('api/dpl-po-options', [DailyProductionListController::class, 'apiPoOptions'])->name('dpl.po-options');
+        Route::get('api/dpl-work-orders', [DailyProductionListController::class, 'apiWorkOrders'])->name('dpl.work-orders');
+        Route::get('api/work-order/{id}', [DailyProductionListController::class, 'apiWorkOrder'])->name('dpl.api.work-order');
+        Route::get('api/dpl-existing/{id}', [DailyProductionListController::class, 'apiExistingDpl'])->name('dpl.api.existing');
+    });
 });
