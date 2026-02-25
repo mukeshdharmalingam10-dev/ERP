@@ -204,6 +204,7 @@
 
             fetch(deleteUrl, {
                 method: 'DELETE',
+                credentials: 'same-origin',
                 headers: {
                     'X-CSRF-TOKEN': csrfToken,
                     'X-Requested-With': 'XMLHttpRequest',
