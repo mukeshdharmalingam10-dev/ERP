@@ -159,7 +159,7 @@
             {{-- Product Name — at the very top of this container, above the section heading --}}
             <div style="margin-bottom:16px;">
                 <label style="display:block; margin-bottom:6px; font-weight:500;">Product Name</label>
-                <input type="text" name="product_name" value="{{ old('product_name', $workOrder->product_name) }}" style="width: 50%; padding:10px; border:1px solid #ddd; border-radius:6px;"{{ $dis }}>
+                <input type="text" name="product_name" value="{{ old('product_name', $workOrder->product_name) }}" style="width: 33%; padding:10px; border:1px solid #ddd; border-radius:6px;"{{ $dis }}>
             </div>
 
             <h3 style="margin:0 0 15px 0; font-size:16px; color:#333;">Quantity Selection</h3>
