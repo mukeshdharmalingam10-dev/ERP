@@ -403,10 +403,16 @@ class WorkOrderController extends Controller
         $query = $this->applyBranchFilter($query, WorkOrder::class);
         $workOrder = $query->findOrFail($id);
 
-        if ($workOrder->document_path) {
-            Storage::disk('public')->delete($workOrder->document_path);
+        DB::transaction(function () use ($workOrder) {
+            if ($workOrder->document_path) {
+                Storage::disk('public')->delete($workOrder->document_path);
+            }
+            $workOrder->delete();
+        });
+
+        if (request()->wantsJson() || request()->ajax()) {
+            return response()->json(['success' => true]);
         }
-        $workOrder->delete();
 
         return redirect()->route('work-orders.index')->with('success', 'Work Order deleted successfully.');
     }

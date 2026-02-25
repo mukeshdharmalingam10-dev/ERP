@@ -165,7 +165,7 @@
             <h3 style="margin:0 0 10px 0; font-size:16px;">Bottom Section</h3>
             <div style="display:grid; grid-template-columns:2fr 1fr 1fr; gap:12px;">
                 <textarea name="remarks" rows="3" placeholder="Remarks" style="padding:9px; border:1px solid #ddd; border-radius:6px;" {{ $viewOnly ? 'readonly' : '' }}>{{ old('remarks', $dpl->remarks) }}</textarea>
-                <input type="date" name="latest_date" value="{{ $latestDate }}" style="padding:9px; border:1px solid #ddd; border-radius:6px;" {{ $viewOnly ? 'readonly' : '' }}>
+                <input type="text" name="latest_date" id="latest_date_picker" value="{{ $latestDate ? \Carbon\Carbon::parse($latestDate)->format('d-m-Y') : '' }}" placeholder="dd-mm-yyyy" autocomplete="off" style="padding:9px; border:1px solid #ddd; border-radius:6px;" {{ $viewOnly ? 'readonly' : '' }}>
                 <input type="text" readonly value="{{ optional($dpl->creator)->name ?? auth()->user()->name }}" style="padding:9px; border:1px solid #ddd; border-radius:6px; background:#e5e7eb;">
             </div>
         </div>
@@ -179,7 +179,12 @@
     </form>
 </div>
 
+@push('styles')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+@endpush
+
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script>
 (function () {
     const viewOnly = @json($viewOnly);
@@ -219,8 +224,8 @@
         setVal('f_wo_type', data?.wo_type);
         setVal('f_start_set', data?.starting_set_no);
         setVal('f_end_set', data?.ending_set_no);
-        setVal('f_sub_count', data?.sub_set_count);
-        setVal('f_total_qty', data?.total_qty);
+        setVal('f_sub_count', (data?.sub_set_count !== null && data?.sub_set_count !== undefined && data?.sub_set_count !== '') ? data.sub_set_count : '0');
+        setVal('f_total_qty', (data?.total_qty !== null && data?.total_qty !== undefined && data?.total_qty !== '') ? data.total_qty : '0');
     }
 
     async function getJson(url) {
@@ -615,6 +620,19 @@
     }
 
     document.getElementById('dplForm').addEventListener('submit', function (e) {
+        // Convert latest_date from dd-mm-yyyy to yyyy-mm-dd for backend
+        const latestDateEl = document.getElementById('latest_date_picker');
+        if (latestDateEl && latestDateEl.value) {
+            const converted = toStoreDate(latestDateEl.value.trim());
+            if (!converted) {
+                e.preventDefault();
+                alert('Invalid date format for DPL Date. Use DD-MM-YYYY.');
+                latestDateEl.focus();
+                return;
+            }
+            latestDateEl.value = converted;
+        }
+
         const dateInputs = this.querySelectorAll('.date-input');
         for (let i = 0; i < dateInputs.length; i++) {
             const el = dateInputs[i];
@@ -663,9 +681,22 @@
         } else if (woEl && woEl.value) {
             await loadWorkOrderDetails();
         } else {
+            fillWorkOrderFields(null);
             renderDynamicTable();
         }
         await loadNextDplNo();
+
+        // Initialize flatpickr for latest_date with dd-mm-yyyy display
+        if (typeof flatpickr !== 'undefined') {
+            const latestDateEl = document.getElementById('latest_date_picker');
+            if (latestDateEl && !latestDateEl.readOnly) {
+                flatpickr(latestDateEl, {
+                    dateFormat: 'd-m-Y',
+                    allowInput: true,
+                    disableMobile: true
+                });
+            }
+        }
     })();
 })();
 </script>

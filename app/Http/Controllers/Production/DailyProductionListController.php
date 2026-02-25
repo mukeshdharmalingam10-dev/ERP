@@ -201,6 +201,10 @@ class DailyProductionListController extends Controller
             $dpl->delete();
         });
 
+        if (request()->wantsJson() || request()->ajax()) {
+            return response()->json(['success' => true]);
+        }
+
         return redirect()->route('dpl.index')->with('success', 'Daily Production List deleted successfully.');
     }
 
