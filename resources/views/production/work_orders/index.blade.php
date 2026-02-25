@@ -76,10 +76,15 @@
                                     <a href="{{ route('work-orders.show', $wo->id) }}" style="padding: 6px 14px; background: #28a745; color: white; text-decoration: none; border-radius: 15px; font-size: 12px;">
                                         <i class="fas fa-eye"></i> VIEW
                                     </a>
-                                    <button type="button" class="delete-work-order" data-url="{{ route('work-orders.destroy', $wo->id) }}"
-                                        style="padding: 6px 14px; background: #dc3545; color: white; border:none; border-radius: 15px; font-size: 12px; cursor:pointer;">
-                                        <i class="fas fa-trash"></i> DELETE
-                                    </button>
+                                    <form action="{{ route('work-orders.destroy', $wo->id) }}" method="POST" style="display:inline;">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="button"
+                                                onclick="if(confirm('Are you sure you want to delete this work order?')){this.form.submit();}"
+                                                style="padding: 6px 14px; background: #dc3545; color: white; border:none; border-radius: 15px; font-size: 12px; cursor:pointer;">
+                                            <i class="fas fa-trash"></i> DELETE
+                                        </button>
+                                    </form>
                                 </div>
                             </td>
 
@@ -122,10 +127,15 @@
                                             <a href="{{ route('work-orders.show', $child->id) }}" style="padding: 5px 12px; background: #28a745; color: white; text-decoration: none; border-radius: 15px; font-size: 12px;">
                                                 <i class="fas fa-eye"></i> VIEW
                                             </a>
-                                            <button type="button" class="delete-work-order" data-url="{{ route('work-orders.destroy', $child->id) }}"
-                                                style="padding: 5px 12px; background: #dc3545; color: white; border:none; border-radius: 15px; font-size: 12px; cursor:pointer;">
-                                                <i class="fas fa-trash"></i> DELETE
-                                            </button>
+                                            <form action="{{ route('work-orders.destroy', $child->id) }}" method="POST" style="display:inline;">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="button"
+                                                        onclick="if(confirm('Are you sure you want to delete this work order?')){this.form.submit();}"
+                                                        style="padding: 5px 12px; background: #dc3545; color: white; border:none; border-radius: 15px; font-size: 12px; cursor:pointer;">
+                                                    <i class="fas fa-trash"></i> DELETE
+                                                </button>
+                                            </form>
                                         </div>
                                     </td>
 
@@ -184,49 +194,6 @@
                 }, 500);
             });
         }
-
-        // ── Work Order Delete via AJAX ────────────────────────────────────────
-        document.addEventListener('click', function (e) {
-            var btn = e.target.closest('.delete-work-order');
-            if (!btn) return;
-
-            e.preventDefault();
-
-            if (!confirm('Are you sure you want to delete this work order?')) {
-                return false;
-            }
-
-            var deleteUrl = btn.getAttribute('data-url');
-            var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deleting...';
-
-            fetch(deleteUrl, {
-                method: 'DELETE',
-                credentials: 'same-origin',
-                headers: {
-                    'X-CSRF-TOKEN': csrfToken,
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(function (response) {
-                if (response.ok || response.status === 200 || response.status === 302) {
-                    location.reload();
-                } else {
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fas fa-trash"></i> DELETE';
-                    alert('Something went wrong. Please try again.');
-                }
-            })
-            .catch(function () {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-trash"></i> DELETE';
-                alert('Something went wrong. Please try again.');
-            });
-        });
 
         // ── Expand / Collapse toggling ────────────────────────────────────────
         document.querySelectorAll('.wo-expand-btn').forEach(function (btn) {
