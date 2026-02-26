@@ -1,3 +1,15 @@
+# Disable caching for all PHP responses (prevents 419 CSRF token mismatch)
+<IfModule mod_headers.c>
+    <FilesMatch "\.(php)$">
+        Header set Cache-Control "no-cache, no-store, must-revalidate, private"
+        Header set Pragma "no-cache"
+        Header set Expires "0"
+    </FilesMatch>
+
+    # Also disable LiteSpeed cache for all dynamic responses
+    Header always set X-LiteSpeed-Cache-Control "no-cache"
+</IfModule>
+
 <IfModule mod_rewrite.c>
     <IfModule mod_negotiation.c>
         Options -MultiViews -Indexes
