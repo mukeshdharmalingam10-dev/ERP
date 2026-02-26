@@ -386,6 +386,8 @@
     </form>
 @endif
 
+                @endif
+
                 @if(!$viewOnly)
                     <button type="submit" style="padding:12px 24px; background:#28a745; color:white; border:none; border-radius:6px; font-weight:500; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
                         <i class="fas fa-check"></i> SUBMIT
